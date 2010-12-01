@@ -1,9 +1,8 @@
 package org.buildobjects.process;
 
 /**
- * User: fleipold
- * Date: Nov 25, 2010
- * Time: 10:30:53 PM
+ * Signals the failure of an external process that returned a non zero exit code. It captures additional information
+ * such as the output on stderr.
  */
 public class ExternalProcessFailureException extends RuntimeException {
     private String command;
@@ -11,7 +10,7 @@ public class ExternalProcessFailureException extends RuntimeException {
     private String stderr;
     private long time;
 
-    public ExternalProcessFailureException(String command, int exitValue, String stderr, long time) {
+    ExternalProcessFailureException(String command, int exitValue, String stderr, long time) {
         this.command = command;
         this.exitValue = exitValue;
         this.stderr = stderr;
@@ -23,18 +22,22 @@ public class ExternalProcessFailureException extends RuntimeException {
         return "External process '" + command + "' returned " + exitValue +" after " + time + "ms\n" + stderr ;
     }
 
+    /** @return the command that was executed */
     public String getCommand() {
         return command;
     }
 
+    /** @return the actual exit value */
     public int getExitValue() {
         return exitValue;
     }
 
+    /** @return the output on stderr */
     public String getStderr() {
         return stderr;
     }
 
+    /** @return the execution time until the process failed*/    
     public long getTime() {
         return time;
     }

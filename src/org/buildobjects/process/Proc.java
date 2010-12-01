@@ -1,16 +1,17 @@
 package org.buildobjects.process;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Internal implementation of the process mechanics
+ */
 class Proc {
 
     private Thread errConsumer;
@@ -26,7 +27,15 @@ class Proc {
     private String command;
     private List<String> args;
 
-    public Proc(String command, List<String> args, Map<String, String> env, InputStream stdin, OutputStream stdout, File directory, long timeout) {
+    public Proc(String command,
+                List<String> args,
+                Map<String, String> env,
+                InputStream stdin,
+                OutputStream stdout,
+                File directory,
+                long timeout)
+            throws StartupException, TimeoutException, ExternalProcessFailureException {
+
         this.command = command;
         this.args = args;
         String[] envArray = getEnv(env);
@@ -37,7 +46,7 @@ class Proc {
             process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
             initializeConsumption(stdin, stdout, err);
         } catch (IOException e) {
-            throw new RuntimeException("Could not startup process '"+ toString() + "'.", e);
+            throw new StartupException("Could not startup process '" + toString() + "'.", e);
         }
 
 
@@ -58,7 +67,7 @@ class Proc {
 
             boolean success = done.tryAcquire(timeout, TimeUnit.MILLISECONDS);
 
-            if (!success){
+            if (!success) {
                 process.destroy();
                 outConsumer.stop();
                 errConsumer.stop();
@@ -67,7 +76,7 @@ class Proc {
             }
 
             executionTime = System.currentTimeMillis() - t1;
-            if (exitValue != 0){
+            if (exitValue != 0) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);
             }
 
@@ -78,12 +87,12 @@ class Proc {
     }
 
     private String[] getEnv(Map<String, String> env) {
-        if (env == null || env.isEmpty()){
+        if (env == null || env.isEmpty()) {
             return null;
         }
         String[] retValue = new String[env.size()];
         int i = 0;
-        for (Map.Entry<String, String> entry : env.entrySet()){
+        for (Map.Entry<String, String> entry : env.entrySet()) {
             retValue[i++] = entry.getKey() + "=" + entry.getValue();
 
         }
@@ -130,10 +139,10 @@ class Proc {
         }
 
         public void run() {
-            if (in == null || out == null){
+            if (in == null || out == null) {
                 return;
             }
-            
+
             byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
             int n = 0;
             try {
@@ -141,7 +150,7 @@ class Proc {
                 while (-1 != (n = in.read(buffer))) {
                     out.write(buffer, 0, n);
                 }
-                if (closeWriter){
+                if (closeWriter) {
                     out.close();
                 }
             } catch (IOException e) {
@@ -152,17 +161,24 @@ class Proc {
 
     @Override
     public String toString() {
-        return command + " " + StringUtils.join(
-                    CollectionUtils.collect(args, new Transformer() {
-                        public Object transform(Object o) {
-                            if (((String) o).contains(" ")){
-                                return "\"" + o + "\"";
-                            }
-                            else {
-                                return o;
-                            }
-                        }
-                    })," ");
+        return command + " " + argString();
+    }
+
+    private String argString() {
+        StringBuffer temp = new StringBuffer();
+        for (Iterator<String> stringIterator = args.iterator(); stringIterator.hasNext();) {
+            String arg = stringIterator.next();
+            if (arg.contains(" ")) {
+                temp.append("\"" + arg + "\"");
+            } else {
+                temp.append(arg);
+            }
+            if (stringIterator.hasNext()){
+                temp.append(" ");
+            }
+
+        }
+        return temp.toString();
     }
 
     public int getExitValue() {
