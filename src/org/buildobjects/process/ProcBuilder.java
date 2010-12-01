@@ -1,12 +1,10 @@
 package org.buildobjects.process;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
+import static java.util.Arrays.asList;
+
 
 /** A builder to construct a new process. The process gets configured by the withXXX-methods and
  * spawned by the run() method*/
@@ -105,7 +103,7 @@ public class ProcBuilder {
     /** Spawn the actual execution.
      *  This will block until the process terminates.
      * @return the result of the successful execution
-     * @throws StartupException if the process can be started
+     * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value*/
     public ProcResult run() throws StartupException, TimeoutException, ExternalProcessFailureException{
@@ -126,7 +124,7 @@ public class ProcBuilder {
      * @param cmd the command
      * @param args the argmuments
      * @return the standard output
-     * @throws StartupException if the process can be started
+     * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value
      *  */
@@ -142,7 +140,7 @@ public class ProcBuilder {
      * @param cmd the command
      * @param args the argmuments
      * @return the standard output
-     * @throws StartupException if the process can be started
+     * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value
      *  */
