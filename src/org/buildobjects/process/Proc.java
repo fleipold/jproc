@@ -75,6 +75,11 @@ class Proc {
                 throw new TimeoutException(toString(), timeout);
             }
 
+            outConsumer.join();
+            errConsumer.join();
+            inFeeder.join();
+
+
             executionTime = System.currentTimeMillis() - t1;
             if (exitValue != 0) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);
