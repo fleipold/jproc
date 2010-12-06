@@ -14,10 +14,6 @@ import java.util.concurrent.TimeUnit;
  */
 class Proc {
 
-    private Thread errConsumer;
-    private Thread inFeeder;
-    private Thread outConsumer;
-
     private Process process;
     private int exitValue;
 
@@ -42,9 +38,10 @@ class Proc {
 
         String[] cmdArray = concatenateCmdArgs();
         long t1 = System.currentTimeMillis();
+        IoHandler ioHandler ;
         try {
             process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
-            initializeConsumption(stdin, stdout, err);
+            ioHandler = new IoHandler(stdin, stdout, err, process);
         } catch (IOException e) {
             throw new StartupException("Could not startup process '" + toString() + "'.", e);
         }
@@ -69,15 +66,11 @@ class Proc {
 
             if (!success) {
                 process.destroy();
-                outConsumer.stop();
-                errConsumer.stop();
-                inFeeder.stop();
+                ioHandler.cancelConsumption();
                 throw new TimeoutException(toString(), timeout);
             }
 
-            outConsumer.join();
-            errConsumer.join();
-            inFeeder.join();
+            ioHandler.joinConsumption();
 
 
             executionTime = System.currentTimeMillis() - t1;
@@ -112,57 +105,6 @@ class Proc {
         return cmd.toArray(new String[cmd.size()]);
     }
 
-    private void initializeConsumption(InputStream stdin, OutputStream stdout, OutputStream stderr) {
-        InputStream out = process.getInputStream();
-        InputStream err = process.getErrorStream();
-        OutputStream in = process.getOutputStream();
-
-        outConsumer = startConsumption(stdout, out, false);
-        errConsumer = startConsumption(stderr, err, false);
-        inFeeder = startConsumption(in, stdin, true);
-    }
-
-
-    private Thread startConsumption(OutputStream stdout, InputStream out, boolean closeAfterWriting) {
-        Thread consumer;
-        consumer = new Thread(new StreamCopyRunner(out, stdout, closeAfterWriting));
-        consumer.start();
-        return consumer;
-    }
-
-
-    private class StreamCopyRunner implements Runnable {
-        InputStream in;
-        OutputStream out;
-        private boolean closeWriter;
-        private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
-
-        private StreamCopyRunner(InputStream in, OutputStream out, boolean closeWriter) {
-            this.in = in;
-            this.out = out;
-            this.closeWriter = closeWriter;
-        }
-
-        public void run() {
-            if (in == null || out == null) {
-                return;
-            }
-
-            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-            int n = 0;
-            try {
-
-                while (-1 != (n = in.read(buffer))) {
-                    out.write(buffer, 0, n);
-                }
-                if (closeWriter) {
-                    out.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("", e);
-            }
-        }
-    }
 
     @Override
     public String toString() {
