@@ -7,7 +7,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import static org.junit.Assert.*;
 
-/** [DOC] */
+
+/** [DOC]
+ *  JProc Five Minute Tutorial*/
 public class ProcBuilderTest {
 
     /**
@@ -81,6 +83,29 @@ public class ProcBuilderTest {
         assertEquals("bash -c \"echo $MYVAR\"", result.getProcString());
     }
 
+    /** By default the new program is spawned in the working directory of
+     * the parent process. This can be overidden: */
+    @Test
+    public void testHonorsWorkingDirectory(){
+        ProcResult result = new ProcBuilder("pwd")
+                .withWorkingDirectory(new File("/"))
+                .run();
+
+        assertEquals("/\n", result.getOutputString());
+    }
+
+    /** Even if the process does not timeout, we might be interested in the
+     * execution time. It is also available through the result:*/
+    @Test
+    public void testReportsExecutionTime(){
+        ProcResult result = new ProcBuilder("sleep")
+                .withArg("0.5")
+                .run();
+
+        assertTrue(result.getExecutionTime() > 500 && result.getExecutionTime() < 1000);
+    }
+
+
     /** A common usecase for external programs is batch processing of data.
      * These programs might always run into difficulties. Therefore a timeout can be
      * specified. There is a default timeout of 5000ms. If the program does not terminate within the timeout
@@ -98,30 +123,6 @@ public class ProcBuilderTest {
         catch (TimeoutException ex){
             assertEquals("Process 'sleep 2' timed out after 1000ms.", ex.getMessage());
         }
-    }
-
-    /** Even if the process does not timeout, we might be interested in the
-     * execution time. It is also available through the result:*/
-    @Test
-    public void testReportsExecutionTime(){
-        ProcResult result = new ProcBuilder("sleep")
-                .withArg("0.5")
-                .withTimeoutMillis(1000)
-                .run();
-
-        assertTrue(result.getExecutionTime() > 500 && result.getExecutionTime() < 1000);
-    }
-
-
-    /** By default the new program is spawned in the working directory of
-     * the parent process. This can be overidden: */
-    @Test
-    public void testHonorsWorkingDirectory(){
-        ProcResult result = new ProcBuilder("pwd")
-                .withWorkingDirectory(new File("/"))
-                .run();
-
-        assertEquals("/\n", result.getOutputString());
     }
 
 
@@ -149,24 +150,6 @@ public class ProcBuilderTest {
 
 
 
-    /** Input and output can also be provided as <code>byte[]</code>.
-     * <code>ProcBuilder</code> also copes with large amounts of
-     * data.*/
-    @Test
-    public void testCopesWithLargeAmountOfData(){
-        int MEGA = 1024 * 1024;
-        byte[] data = new byte[4 * MEGA];
-        for (int i = 0; i < data.length; i++) {
-            data[i] = (byte) Math.round(Math.random() * 255 - 128);
-        }
-
-        ProcResult result = new ProcBuilder("gzip")
-           .withInput(data)
-           .run();
-
-        assertTrue(result.getOutputBytes().length > 2 * MEGA);
-    }
-
     /** The builder allows to build and spawn several processes from
      * the same builder instance: */
     @Test
@@ -186,7 +169,7 @@ public class ProcBuilderTest {
     @Test
     public void testStaticRun(){
         String output = ProcBuilder.run("echo", "Hello World!");
-        
+
         assertEquals("Hello World!\n", output);
     }
 
@@ -200,5 +183,24 @@ public class ProcBuilderTest {
         assertEquals("x a z\n", output);
     }
 
+    /** Input and output can also be provided as <code>byte[]</code>.
+     * <code>ProcBuilder</code> also copes with large amounts of
+     * data.*/
+    @Test
+    public void testCopesWithLargeAmountOfData(){
+        int MEGA = 1024 * 1024;
+        byte[] data = new byte[4 * MEGA];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) Math.round(Math.random() * 255 - 128);
+        }
+
+        ProcResult result = new ProcBuilder("gzip")
+                .withInput(data)
+                .run();
+
+        assertTrue(result.getOutputBytes().length > 2 * MEGA);
+    }
+
 
 }
+                          

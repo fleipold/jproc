@@ -72,7 +72,7 @@ class Proc {
 
             ioHandler.joinConsumption();
 
-
+             
             executionTime = System.currentTimeMillis() - t1;
             if (exitValue != 0) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);
