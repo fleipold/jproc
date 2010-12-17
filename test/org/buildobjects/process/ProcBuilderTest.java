@@ -140,7 +140,7 @@ public class ProcBuilderTest {
             fail("Should throw exception");
         } catch (ExternalProcessFailureException ex){
             assertEquals("No such file or directory", ex.getStderr().split("\\:")[2].trim());
-            assertEquals(1, ex.getExitValue());
+            assertTrue(ex.getExitValue() > 0);
             assertEquals("ls xyz", ex.getCommand());
             assertTrue(ex.getTime() > 0);
 
