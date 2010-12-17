@@ -139,10 +139,9 @@ public class ProcBuilderTest {
             builder.run();
             fail("Should throw exception");
         } catch (ExternalProcessFailureException ex){
-            assertEquals("ls: xyz: No such file or directory\n", ex.getStderr());
+            assertEquals("No such file or directory", ex.getStderr().split("\\:")[2].trim());
             assertEquals(1, ex.getExitValue());
             assertEquals("ls xyz", ex.getCommand());
-            assertEquals("ls: xyz: No such file or directory\n", ex.getStderr());
             assertTrue(ex.getTime() > 0);
 
         }
@@ -180,7 +179,7 @@ public class ProcBuilderTest {
     public void testStaticFilter(){
         String output = ProcBuilder.filter("x y z","sed" ,"s/y/a/");
 
-        assertEquals("x a z\n", output);
+        assertEquals("x a z", output.trim());
     }
 
     /** Input and output can also be provided as <code>byte[]</code>.
