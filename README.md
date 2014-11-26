@@ -1,12 +1,13 @@
-JProc
-=====
+Intro
+-----
 
-Java library that helps with running external processes. JProc helps managing input and output
-of external processes as well as error conditions. It uses sensible defaults, such as throwing an
+Running external commands in Java is an error prone task.
+JProc helps managing input and output of external processes as
+well as error conditions. It uses sensible defaults, such as throwing an
 exception if a process terminates with a non zero exit code.
 
-JProc Five Minute Tutorial
-==========================
+Five Minute Tutorial
+--------------------
 
 To get started  either download the [jar](http://code.google.com/p/jproc/downloads/detail?name=jproc-2.jar) or
 if you are using maven add this snippet to your pom:
@@ -19,8 +20,7 @@ if you are using maven add this snippet to your pom:
 </dependency>
 ~~~
 
-
-For the basic use case of just capturing program output there ia static method:
+For the basic use case of just capturing program output there is a static method:
 
 ~~~ .java
 String output = ProcBuilder.run("echo", "Hello World!");
@@ -31,7 +31,7 @@ assertEquals("Hello World!\n", output);
 Also there is a static method that filters a given string through
 a program:
 
-~~~
+~~~ .java
 String output = ProcBuilder.filter("x y z","sed" ,"s/y/a/");
 
 assertEquals("x a z\n", output);
