@@ -9,7 +9,7 @@ exception if a process terminates with a non zero exit code.
 Five Minute Tutorial
 --------------------
 
-To get started  either download the [jar](http://code.google.com/p/jproc/downloads/detail?name=jproc-2.jar) or
+To get started  either download the [jar](https://oss.sonatype.org/content/repositories/releases/org/buildobjects/jproc/2/jproc-2.jar) or
 if you are using maven add this snippet to your pom:
 
 ~~~ .xml
