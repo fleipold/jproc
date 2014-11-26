@@ -8,10 +8,10 @@ exception if a process terminates with a non zero exit code.
 JProc Five Minute Tutorial
 ==========================
 
-To get started  either download the [http://code.google.com/p/jproc/downloads/detail?name=jproc-2.jar jar] or
+To get started  either download the [jar](http://code.google.com/p/jproc/downloads/detail?name=jproc-2.jar) or
 if you are using maven add this snippet to your pom:
 
-~~~
+~~~ .xml
 <dependency>
           <groupId>org.buildobjects</groupId>
           <artifactId>jproc</artifactId>
@@ -22,7 +22,7 @@ if you are using maven add this snippet to your pom:
 
 For the basic use case of just capturing program output there ia static method:
 
-~~~
+~~~ .java
 String output = ProcBuilder.run("echo", "Hello World!");
 
 assertEquals("Hello World!\n", output);
@@ -44,7 +44,7 @@ The process takes care of writing the output to a stream, as opposed to the stan
 facilities in the JDK that expect the client to actively consume the
 output from an input stream:
 
-~~~
+~~~ .java
 ByteArrayOutputStream output = new ByteArrayOutputStream();
 
 new ProcBuilder("echo")
@@ -57,7 +57,7 @@ assertEquals("Hello World!\n", output.toString());
 
 The input can be read from an arbitrary input stream, like this:
 
-~~~
+~~~ .java
 ByteArrayInputStream input = new ByteArrayInputStream("Hello cruel World".getBytes());
 
 ProcResult result = new ProcBuilder("wc")
@@ -72,7 +72,7 @@ is not a lot of data, using a streams is quite cumbersome. So for convenience
 if no stream is provdied the output is captured by default and can be
 obtained from the result.
 
-~~~
+~~~ .java
 ProcResult result = new ProcBuilder("echo")
                             .withArg("Hello World!")
                             .run();
@@ -84,7 +84,7 @@ assertEquals("echo \"Hello World!\"", result.getProcString());
 
 For providing input there is a convenience method too:
 
-~~~
+~~~ .java
 ProcResult result = new ProcBuilder("cat")
    .withInput("This is a string").run();
 
@@ -94,7 +94,7 @@ assertEquals("This is a string", result.getOutputString());
 Some external programs are using environment variables. These can also
 be set using the `withVar` method
 
-~~~
+~~~ .java
 ProcResult result = new ProcBuilder("bash")
                             .withArgs("-c", "echo $MYVAR")
                             .withVar("MYVAR","my value").run();
@@ -109,7 +109,7 @@ specified. There is a default timeout of 5000ms. If the program does not termina
 interval it will be terminated and the failure is indicated through
 an exception:
 
-~~~
+~~~ .java
 ProcBuilder builder = new ProcBuilder("sleep")
         .withArg("2")
         .withTimeoutMillis(1000);
@@ -125,7 +125,7 @@ catch (TimeoutException ex){
 Even if the process does not timeout, we might be interested in the
 execution time. It is also available through the result:
 
-~~~
+~~~ .java
 ProcResult result = new ProcBuilder("sleep")
         .withArg("0.5")
         .withTimeoutMillis(1000)
@@ -137,7 +137,7 @@ assertTrue(result.getExecutionTime() > 500 && result.getExecutionTime() < 1000);
 By default the new program is spawned in the working directory of
 the parent process. This can be overidden:
 
-~~~
+~~~ .java
 ProcResult result = new ProcBuilder("pwd")
         .withWorkingDirectory(new File("/"))
         .run();
@@ -151,7 +151,7 @@ signalled through exceptions. Non-zero exit values therefore
 get translated into an exception, that also grants access to
 the output on standard error.
 
-~~~
+~~~ .java
 ProcBuilder builder = new ProcBuilder("ls")
                             .withArg("xyz");
 try {
@@ -168,10 +168,10 @@ try {
 ~~~
 
 Input and output can also be provided as `byte[]`.
-`ProcBuilder` also copes with large amounts of
-data.
+`ProcBuilder` copes with large amounts of
+data:
 
-~~~
+~~~ .java
 int MEGA = 1024 * 1024;
 byte[] data = new byte[4 * MEGA];
 for (int i = 0; i < data.length; i++) {
@@ -188,7 +188,7 @@ assertTrue(result.getOutputBytes().length > 2 * MEGA);
 The builder allows to build and spawn several processes from
 the same builder instance:
 
-~~~
+~~~ .java
 ProcBuilder builder = new ProcBuilder("uuidgen");
 String uuid1 = builder.run().getOutputString();
 String uuid2 = builder.run().getOutputString();
