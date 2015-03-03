@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/fleipold/jproc.svg?branch=master)](https://travis-ci.org/fleipold/jproc)
+
+
 Intro
 -----
 
