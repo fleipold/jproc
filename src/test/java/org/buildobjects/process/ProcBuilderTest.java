@@ -16,13 +16,13 @@ public class ProcBuilderTest {
      * To launch an external program  we'll use a <code>ProcBuilder</code>. The run method
      * builds and spawns the actual process and blocks until the process exits.
      *  The process takes care of writing the output to a stream (as opposed to the standard
-     * facilities in the JDK that expect the client to actively consume the 
+     * facilities in the JDK that expect the client to actively consume the
      * output from an input stream:
      * */
     @Test
     public void testOutputToStream(){
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        
+
         new ProcBuilder("echo")
                 .withArg("Hello World!")
                 .withOutputStream(output)
@@ -152,14 +152,16 @@ public class ProcBuilderTest {
     /** The builder allows to build and spawn several processes from
      * the same builder instance: */
     @Test
-    public void testCanCallRunMultipleTimes(){
-        ProcBuilder builder = new ProcBuilder("uuidgen");
-        String uuid1 = builder.run().getOutputString();
-        String uuid2 = builder.run().getOutputString();
+    public void testCanCallRunMultipleTimes() throws InterruptedException {
+        ProcBuilder builder = new ProcBuilder("date");
 
-        assertNotNull(uuid1);
-        assertNotNull(uuid2);
-        assertTrue(!uuid1.equals(uuid2));
+        String date1 = builder.run().getOutputString();
+        Thread.sleep(2000);
+        String date2 = builder.run().getOutputString();
+
+        assertNotNull(date1);
+        assertNotNull(date2);
+        assertTrue(!date1.equals(date2));
     }
 
     /** For convenience there is also a static method that just runs a
@@ -202,4 +204,3 @@ public class ProcBuilderTest {
 
 
 }
-                          
