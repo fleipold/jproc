@@ -31,6 +31,31 @@ class Proc {
                 File directory,
                 long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
+    	int[] exitcodes = {0};  // Set the default for the old behavior
+    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitcodes);
+    }
+    
+    public Proc(String command,
+            	List<String> args,
+            	Map<String, String> env,
+            	InputStream stdin,
+            	OutputStream stdout,
+            	File directory,
+            	long timeout,
+            	int[] exitcodes)
+            throws StartupException, TimeoutException, ExternalProcessFailureException {
+    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitcodes);
+    }
+    
+    public Proc _Proc(String command,
+            List<String> args,
+            Map<String, String> env,
+            InputStream stdin,
+            OutputStream stdout,
+            File directory,
+            long timeout,
+            int[] exitcodes)
+        throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
         this.args = args;
@@ -74,14 +99,23 @@ class Proc {
 
              
             executionTime = System.currentTimeMillis() - t1;
-            if (exitValue != 0) {
+            // Check for accepted exit codes
+            Boolean validExitCode = false;
+            if (exitcodes.length > 0) {
+            	for (int i=0; i < exitcodes.length; i++){
+            		if (exitcodes[i] == exitValue) {
+            			validExitCode = true;
+            		}
+            	}
+            }
+            if (! validExitCode) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);
             }
 
         } catch (InterruptedException e) {
             throw new RuntimeException("", e);
         }
-
+        return this;
     }
 
     private String[] getEnv(Map<String, String> env) {

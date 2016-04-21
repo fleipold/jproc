@@ -20,6 +20,8 @@ public class ProcBuilder {
     InputStream stdin;
 
     long timoutMillis = 5000;
+    
+    int[] exitcodes = {0};
 
     File directory;
 
@@ -99,6 +101,17 @@ public class ProcBuilder {
         this.args.addAll(asList(args));
         return this;
     }
+    
+    /** Define the valid exit codes for the command
+     * 
+     * @param exitcodes the array containing the exit codes that are valid
+     * @return the ProcBuilder object; permits chaining.
+     * @author Mark Galbraith (mark.galbraith@citrix.com)
+     */
+    public ProcBuilder withExitCodes(int[] exitcodes) {
+    	this.exitcodes = exitcodes;
+    	return this;
+    }
 
     /** Spawn the actual execution.
      *  This will block until the process terminates.
@@ -108,7 +121,7 @@ public class ProcBuilder {
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value*/
     public ProcResult run() throws StartupException, TimeoutException, ExternalProcessFailureException{
         try{
-            Proc proc = new Proc(command, args, env, stdin, stdout, directory, timoutMillis);
+            Proc proc = new Proc(command, args, env, stdin, stdout, directory, timoutMillis, exitcodes);
 
             return new ProcResult(proc.toString(), defaultStdout == stdout ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
         }
