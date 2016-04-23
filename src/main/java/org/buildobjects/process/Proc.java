@@ -109,6 +109,8 @@ class Proc {
             			validExitCode = true;
             		}
             	}
+            } else {
+            	validExitCode = true;
             }
             if (! validExitCode) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);

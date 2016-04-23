@@ -105,6 +105,7 @@ public class ProcBuilderTest {
     								  .withArgs("-c", "echo Hello World!;exit 100")
     								  .withExitStatuses(exitstatuses)
     								  .run();
+    		
     		assertEquals("Hello World!\n", result.getOutputString());
             assertEquals(100, result.getExitValue());
     	}
@@ -125,6 +126,7 @@ public class ProcBuilderTest {
     								  .withArgs("-c", "echo Hello World!;exit 99")
     								  .withExitStatuses(exitstatuses)
     								  .run();
+    		
     		// We should never get here.
     		assert false;
     	}
@@ -143,6 +145,7 @@ public class ProcBuilderTest {
     								  .withArgs("-c", "echo Hello World!;exit 100")
     								  .ignoreExitStatus()
     								  .run();
+    		
     		assertEquals("Hello World!\n", result.getOutputString());
             assertEquals(100, result.getExitValue());
     	}
