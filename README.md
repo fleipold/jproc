@@ -205,7 +205,6 @@ try {
     assertEquals(100, result.getExitValue());
 }
 catch(ExternalProcessFailureException ex) {
-	// We got here because the extension failed to prevent the exception from being thrown
 	assert false;
 }
 ~~~
