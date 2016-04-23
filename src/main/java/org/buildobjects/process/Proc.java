@@ -31,8 +31,9 @@ class Proc {
                 File directory,
                 long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
-    	int[] exitcodes = {0};  // Set the default for the old behavior
-    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitcodes);
+    	int[] exitstatuses = {0};  // Set the default for the old behavior
+    	// Call the _Proc helper
+    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitstatuses);
     }
     
     public Proc(String command,
@@ -42,9 +43,10 @@ class Proc {
             	OutputStream stdout,
             	File directory,
             	long timeout,
-            	int[] exitcodes)
+            	int[] exitstatuses)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
-    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitcodes);
+    	// Call the _Proc helper
+    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitstatuses);
     }
     
     public Proc _Proc(String command,
@@ -54,7 +56,7 @@ class Proc {
             OutputStream stdout,
             File directory,
             long timeout,
-            int[] exitcodes)
+            int[] exitstatuses)
         throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
@@ -101,9 +103,9 @@ class Proc {
             executionTime = System.currentTimeMillis() - t1;
             // Check for accepted exit codes
             Boolean validExitCode = false;
-            if (exitcodes.length > 0) {
-            	for (int i=0; i < exitcodes.length; i++){
-            		if (exitcodes[i] == exitValue) {
+            if (exitstatuses.length > 0) {
+            	for (int i=0; i < exitstatuses.length; i++){
+            		if (exitstatuses[i] == exitValue) {
             			validExitCode = true;
             		}
             	}
