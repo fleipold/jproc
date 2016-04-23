@@ -4,7 +4,7 @@
     <artifactId>jproc</artifactId>
     <packaging>jar</packaging>
     <name>jproc</name>
-    <version>2.1.1</version>
+    <version>VERSION</version>
     <description>Library for launching external processes and managing input and output.</description>
     <url>https://github.com/fleipold/jproc</url>
     <licenses>
