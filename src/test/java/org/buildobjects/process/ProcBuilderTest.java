@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+
 import static org.junit.Assert.*;
 
 
@@ -92,6 +93,66 @@ public class ProcBuilderTest {
                 .run();
 
         assertEquals("/\n", result.getOutputString());
+    }
+    
+    /** Verify that we can specify an exit code to ignore
+     */
+    @Test
+    public void testHonorsDefinedExitStatuses() {
+    	try {
+    		int[] exitstatuses = {0,100};
+    		ProcResult result = new ProcBuilder("bash")
+    								  .withArgs("-c", "echo Hello World!;exit 100")
+    								  .withExitStatuses(exitstatuses)
+    								  .run();
+    		
+    		assertEquals("Hello World!\n", result.getOutputString());
+            assertEquals(100, result.getExitValue());
+    	}
+    	catch(ExternalProcessFailureException ex) {
+    		// We got here because the extension failed to prevent the exception from being thrown
+    		assert false;
+    	}
+    }
+    
+    /** Verify that we ignore only the specified status codes
+     */
+    @Test
+    public void testHonorsOnlyDefinedExitStatuses() {
+    	try {
+    		int[] exitstatuses = {0,100};
+    		@SuppressWarnings("unused")
+			ProcResult result = new ProcBuilder("bash")
+    								  .withArgs("-c", "echo Hello World!;exit 99")
+    								  .withExitStatuses(exitstatuses)
+    								  .run();
+    		
+    		// We should never get here.
+    		assert false;
+    	}
+    	catch(ExternalProcessFailureException ex) {
+    		// We expect to get here. Consume the exception and do not throw a new one.
+    		assert true;
+    	}
+    }
+    
+    /** Verify that we can ignore all non-zero exit status codes
+     */
+    @Test
+    public void testHonorsIgnoreExitStatus() {
+    	try {
+    		ProcResult result = new ProcBuilder("bash")
+    								  .withArgs("-c", "echo Hello World!;exit 100")
+    								  .ignoreExitStatus()
+    								  .run();
+    		
+    		assertEquals("Hello World!\n", result.getOutputString());
+            assertEquals(100, result.getExitValue());
+    	}
+    	catch(ExternalProcessFailureException ex) {
+    		// We got here because the extension failed to prevent the exception from being thrown
+    		assert false;
+    	}
     }
 
     /** Even if the process does not timeout, we might be interested in the

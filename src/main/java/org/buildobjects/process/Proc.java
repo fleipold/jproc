@@ -31,6 +31,33 @@ class Proc {
                 File directory,
                 long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
+    	int[] exitstatuses = {0};  // Set the default for the old behavior
+    	// Call the _Proc helper
+    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitstatuses);
+    }
+    
+    public Proc(String command,
+            	List<String> args,
+            	Map<String, String> env,
+            	InputStream stdin,
+            	OutputStream stdout,
+            	File directory,
+            	long timeout,
+            	int[] exitstatuses)
+            throws StartupException, TimeoutException, ExternalProcessFailureException {
+    	// Call the _Proc helper
+    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitstatuses);
+    }
+    
+    public Proc _Proc(String command,
+            List<String> args,
+            Map<String, String> env,
+            InputStream stdin,
+            OutputStream stdout,
+            File directory,
+            long timeout,
+            int[] exitstatuses)
+        throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
         this.args = args;
@@ -74,14 +101,25 @@ class Proc {
 
              
             executionTime = System.currentTimeMillis() - t1;
-            if (exitValue != 0) {
+            // Check for accepted exit codes
+            Boolean validExitCode = false;
+            if (exitstatuses.length > 0) {
+            	for (int i=0; i < exitstatuses.length; i++){
+            		if (exitstatuses[i] == exitValue) {
+            			validExitCode = true;
+            		}
+            	}
+            } else {
+            	validExitCode = true;
+            }
+            if (! validExitCode) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);
             }
 
         } catch (InterruptedException e) {
             throw new RuntimeException("", e);
         }
-
+        return this;
     }
 
     private String[] getEnv(Map<String, String> env) {
