@@ -11,25 +11,27 @@ import static org.buildobjects.process.Helper.asSet;
  * spawned by the run() method*/
 public class ProcBuilder {
 
-    ByteArrayOutputStream defaultStdout = new ByteArrayOutputStream();
+    private ByteArrayOutputStream defaultStdout = new ByteArrayOutputStream();
 
-    String command;
-    List<String> args = new ArrayList<String>();
+    private String command;
+    private List<String> args = new ArrayList<String>();
     private Map<String, String> env = new HashMap<String, String>();
 
-    OutputStream stdout = defaultStdout;
-    InputStream stdin;
+    private OutputStream stdout = defaultStdout;
+    private InputStream stdin;
 
-    long timoutMillis = 5000;
+    private long timoutMillis = 5000;
 
-    Set<Integer> expectedExitStatuses = new HashSet<Integer>(){{add(0);}};
+    private Set<Integer> expectedExitStatuses = new HashSet<Integer>(){{add(0);}};
 
-    File directory;
+    private File directory;
 
 
     /** Creates a new ProcBuilder
      * @param command The command to run
-     * @param args The command line arguments*/
+     * @param args The command line arguments
+     */
+
     public ProcBuilder(String command, String... args) {
         this.command = command;
         withArgs(args);
@@ -37,7 +39,9 @@ public class ProcBuilder {
 
     /**
      * Adds another argument
-     * @param arg to add */
+     * @param arg to add
+     * @return this, for chaining
+     * */
     public ProcBuilder withArg(String arg){
         args.add(arg);
         return this;
@@ -47,7 +51,9 @@ public class ProcBuilder {
     /** Redirecting the standard output. If it is not redirected the output gets captured in memory and
      * is available on the @see ProcResult
      *
-     * @param stdout stream to redirect the output to. */
+     * @param stdout stream to redirect the output to. \
+     * @return this, for chaining
+     * */
     public ProcBuilder withOutputStream(OutputStream stdout){
         this.stdout = stdout;
         return this;
@@ -55,7 +61,9 @@ public class ProcBuilder {
 
 
     /** Specify a timeout for the operation. If not specified the default is 5secs
-     * @param timeoutMillis*/
+     * @param timeoutMillis time that the process gets to run
+     * @return this, for chaining
+     * */
     public ProcBuilder withTimeoutMillis(long timeoutMillis){
         this.timoutMillis = timeoutMillis;
         return this;
@@ -63,14 +71,18 @@ public class ProcBuilder {
 
 
     /** Take the input for the program from a given InputStream
-     * @param stdin stream to read the input from*/
+     * @param stdin stream to read the input from
+     * @return this, for chaining
+     */
     public ProcBuilder withInputStream(InputStream stdin){
         this.stdin = stdin;
         return this;
     }
 
     /** Supply the input as string
-     * @param input the actual input*/
+     * @param input the actual input
+     * @return this, for chaining
+     */
     ProcBuilder withInput(String input){
         stdin = new ByteArrayInputStream(input.getBytes());
         return this;
@@ -78,14 +90,18 @@ public class ProcBuilder {
 
 
     /** Supply the input as byte[]
-     * @param input the actual input*/
+     * @param input the actual input
+     * @return this, for chaining
+     */
     ProcBuilder withInput(byte[] input){
         stdin = new ByteArrayInputStream(input);
         return this;
     }
 
     /** Override the wokring directory
-     * @param directory the working directory for the process*/
+     * @param directory the working directory for the process
+     * @return this, for chaining
+     */
     public ProcBuilder withWorkingDirectory(File directory){
         if (!directory.isDirectory()){
             throw new IllegalArgumentException("File '" + directory.getPath() + "' is not a directory.");
@@ -96,7 +112,9 @@ public class ProcBuilder {
 
 
     /** Add multiple args
-     *   @param args the arguments add*/
+     *   @param args the arguments add
+     *   @return this, for chaining
+     */
     public ProcBuilder withArgs(String... args) {
         this.args.addAll(asList(args));
         return this;
@@ -108,9 +126,7 @@ public class ProcBuilder {
      * @return the ProcBuilder object; permits chaining.
      * @author Mark Galbraith (mark.galbraith@citrix.com)
      *
-     * @deprecated Please use ProcBuilder#withExpectedExitStatuses(asSet<Integer>) or
-     * ProcBuilder#withExpectedExitStatuses(int...)
-     */
+     * @deprecated Please use the variants with a set or vargs parameters*/
 
     public ProcBuilder withExitStatuses(int[] exitstatuses) {
         this.expectedExitStatuses = asSet(exitstatuses);
@@ -124,8 +140,8 @@ public class ProcBuilder {
      * @author Mark Galbraith (mark.galbraith@citrix.com)
      */
     public ProcBuilder withExpectedExitStatuses(Set<Integer> expectedExitStatuses) {
-    	this.expectedExitStatuses = expectedExitStatuses;
-    	return this;
+        this.expectedExitStatuses = expectedExitStatuses;
+        return this;
     }
 
 
@@ -146,8 +162,8 @@ public class ProcBuilder {
      * @return the ProcBuilder object; permits chaining.
      */
     public ProcBuilder ignoreExitStatus() {
-    	this.expectedExitStatuses = Collections.emptySet();
-    	return this;
+        this.expectedExitStatuses = Collections.emptySet();
+        return this;
     }
 
     /** Spawn the actual execution.
@@ -204,7 +220,8 @@ public class ProcBuilder {
 
     /** Add a variable to the processes environment
      * @param var variable name
-     * @param value the value to be passed in*/
+     * @param value the value to be passed in
+     * @return this, for chaining*/
     public ProcBuilder withVar(String var, String value) {
         env.put(var, value);
         return this;
