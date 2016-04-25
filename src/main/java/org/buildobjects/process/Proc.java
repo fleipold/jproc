@@ -11,14 +11,14 @@ import java.util.concurrent.TimeUnit;
  */
 class Proc {
 
-    private Process process;
+    private final Process process;
     private int exitValue;
 
     private long executionTime;
 
-    private ByteArrayOutputStream err = new ByteArrayOutputStream();
-    private String command;
-    private List<String> args;
+    private final ByteArrayOutputStream err = new ByteArrayOutputStream();
+    private final String command;
+    private final List<String> args;
 
     public Proc(String command,
                 List<String> args,
