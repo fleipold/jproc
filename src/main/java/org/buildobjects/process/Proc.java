@@ -2,10 +2,7 @@ package org.buildobjects.process;
 
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -31,32 +28,17 @@ class Proc {
                 File directory,
                 long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
-    	int[] exitstatuses = {0};  // Set the default for the old behavior
-    	// Call the _Proc helper
-    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitstatuses);
+    	this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>());
     }
-    
+
     public Proc(String command,
-            	List<String> args,
-            	Map<String, String> env,
-            	InputStream stdin,
-            	OutputStream stdout,
-            	File directory,
-            	long timeout,
-            	int[] exitstatuses)
-            throws StartupException, TimeoutException, ExternalProcessFailureException {
-    	// Call the _Proc helper
-    	_Proc(command, args, env, stdin, stdout, directory, timeout, exitstatuses);
-    }
-    
-    public Proc _Proc(String command,
             List<String> args,
             Map<String, String> env,
             InputStream stdin,
             OutputStream stdout,
             File directory,
             long timeout,
-            int[] exitstatuses)
+            Set<Integer> expectedExitStatuses)
         throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
@@ -99,27 +81,15 @@ class Proc {
 
             ioHandler.joinConsumption();
 
-             
             executionTime = System.currentTimeMillis() - t1;
-            // Check for accepted exit codes
-            Boolean validExitCode = false;
-            if (exitstatuses.length > 0) {
-            	for (int i=0; i < exitstatuses.length; i++){
-            		if (exitstatuses[i] == exitValue) {
-            			validExitCode = true;
-            		}
-            	}
-            } else {
-            	validExitCode = true;
-            }
-            if (! validExitCode) {
+
+            if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(exitValue)) {
                 throw new ExternalProcessFailureException(toString(), exitValue, err.toString(), executionTime);
             }
 
         } catch (InterruptedException e) {
             throw new RuntimeException("", e);
         }
-        return this;
     }
 
     private String[] getEnv(Map<String, String> env) {

@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.buildobjects.process.Helper.asSet;
 
 
 /** A builder to construct a new process. The process gets configured by the withXXX-methods and
@@ -20,8 +21,8 @@ public class ProcBuilder {
     InputStream stdin;
 
     long timoutMillis = 5000;
-    
-    int[] expectedExitStatuses = {0};
+
+    Set<Integer> expectedExitStatuses = new HashSet<Integer>(){{add(0);}};
 
     File directory;
 
@@ -45,7 +46,7 @@ public class ProcBuilder {
 
     /** Redirecting the standard output. If it is not redirected the output gets captured in memory and
      * is available on the @see ProcResult
-     * 
+     *
      * @param stdout stream to redirect the output to. */
     public ProcBuilder withOutputStream(OutputStream stdout){
         this.stdout = stdout;
@@ -94,32 +95,58 @@ public class ProcBuilder {
     }
 
 
-
     /** Add multiple args
      *   @param args the arguments add*/
     public ProcBuilder withArgs(String... args) {
         this.args.addAll(asList(args));
         return this;
     }
-    
+
     /** Define the valid exit status codes for the command
-     * 
-     * @param exitcodes the array containing the exit codes that are valid
+     *
+     * @param exitstatuses array containing the exit codes that are valid
+     * @return the ProcBuilder object; permits chaining.
+     * @author Mark Galbraith (mark.galbraith@citrix.com)
+     *
+     * @deprecated Please use ProcBuilder#withExpectedExitStatuses(asSet<Integer>) or
+     * ProcBuilder#withExpectedExitStatuses(int...)
+     */
+
+    public ProcBuilder withExitStatuses(int[] exitstatuses) {
+        this.expectedExitStatuses = asSet(exitstatuses);
+        return this;
+    }
+
+    /** Define the valid exit status codes for the command
+     *
+     * @param expectedExitStatuses array containing the exit codes that are valid
      * @return the ProcBuilder object; permits chaining.
      * @author Mark Galbraith (mark.galbraith@citrix.com)
      */
-    public ProcBuilder withExitStatuses(int[] exitstatuses) {
-    	this.expectedExitStatuses = exitstatuses;
+    public ProcBuilder withExpectedExitStatuses(Set<Integer> expectedExitStatuses) {
+    	this.expectedExitStatuses = expectedExitStatuses;
     	return this;
     }
-    
+
+
+    /** Define the valid exit status codes for the command
+     *  Convenience method taking varargs.
+     *
+     * @param expectedExitStatuses varargs parameter containing the exit codes that are valid
+     * @return the ProcBuilder object; permits chaining.
+     * @author Mark Galbraith (mark.galbraith@citrix.com)
+     */
+    public ProcBuilder withExpectedExitStatuses(int... expectedExitStatuses) {
+        this.expectedExitStatuses = asSet(expectedExitStatuses);
+        return this;
+    }
+
     /** Ignore the error status returned from this command
-     * 
+     *
      * @return the ProcBuilder object; permits chaining.
      */
     public ProcBuilder ignoreExitStatus() {
-    	int[] emptySet = {};
-    	this.expectedExitStatuses = emptySet;
+    	this.expectedExitStatuses = Collections.emptySet();
     	return this;
     }
 
@@ -141,7 +168,6 @@ public class ProcBuilder {
             stdout = defaultStdout;
         }
     }
-   
 
     /** Static helper to run a process
      * @param cmd the command

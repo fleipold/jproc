@@ -171,23 +171,21 @@ try {
 ~~~
 
 There are times when you will call a program that normally returns
-a non-zero exit value.  If the program can return one of several 
+a non-zero exit value.  If the program can return one of several
 exit status values that are considered "OK", you can specify the list
 of valid exit status codes.
 
 ~~~ .java
 try {
-	int[] exitstatuses = {0,100};
-	ProcResult result = new ProcBuilder("bash")
-							  .withArgs("-c", "echo Hello World!;exit 100")
-							  .withExitStatuses(exitstatuses)
-							  .run();
-	
-	assertEquals("Hello World!\n", result.getOutputString());
+    ProcResult result = new ProcBuilder("bash")
+                              .withArgs("-c", "echo Hello World!;exit 100")
+                              .ignoreExitStatus()
+                              .run();
+
+    assertEquals("Hello World!\n", result.getOutputString());
     assertEquals(100, result.getExitValue());
-}
-catch(ExternalProcessFailureException ex) {
-	assert false;
+} catch(ExternalProcessFailureException ex) {
+    fail("A process started with ignoreExitStatus should not throw an exception");
 }
 ~~~
 
@@ -200,12 +198,11 @@ try {
 							  .withArgs("-c", "echo Hello World!;exit 100")
 							  .ignoreExitStatus()
 							  .run();
-	
+
 	assertEquals("Hello World!\n", result.getOutputString());
     assertEquals(100, result.getExitValue());
-}
-catch(ExternalProcessFailureException ex) {
-	assert false;
+} catch(ExternalProcessFailureException ex) {
+	fail("A process started with ignoreExitStatus should not throw an exception");
 }
 ~~~
 
