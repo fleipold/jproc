@@ -9,8 +9,8 @@ JProc helps managing input and output of external processes as
 well as error conditions. It uses sensible defaults, such as throwing an
 exception if a process terminates with a non zero exit code.
 
-Five Minute Tutorial
---------------------
+Getting Started
+---------------
 
 To get started  either download the [jar](https://oss.sonatype.org/content/repositories/releases/org/buildobjects/jproc/2/jproc-2.jar) or
 if you are using maven add this snippet to your pom:
@@ -39,6 +39,9 @@ String output = ProcBuilder.filter("x y z", "sed", "s/y/a/");
 
 assertEquals("x a z\n", output);
 ~~~
+
+Output and Input
+----------------
 
 For more control over the execution we'll use a `ProcBuilder` instance to configure
 the process.
@@ -95,6 +98,9 @@ ProcResult result = new ProcBuilder("cat")
 assertEquals("This is a string", result.getOutputString());
 ~~~
 
+The Environment
+---------------
+
 Some external programs are using environment variables. These can also
 be set using the `withVar` method:
 
@@ -117,6 +123,9 @@ ProcResult result = new ProcBuilder("pwd")
 
 assertEquals("/\n", result.getOutputString());
 ~~~
+
+Timeouts
+--------
 
 A common usecase for external programs is batch processing of data.
 These programs might always run into difficulties. Therefore a timeout can be
@@ -165,6 +174,9 @@ ProcBuilder builder = new ProcBuilder("sleep")
 ProcResult result = builder.run();
 assertEquals(result.getExecutionTime(), 7000, 500);
 ~~~
+
+Exit Status
+-----------
 
 It is a time honoured tradition that programs signal a failure
 by returning a non-zero exit value. However in java failure is
@@ -239,6 +251,9 @@ try {
     assertEquals(99, ex.getExitValue());
 }
 ~~~
+
+Good to Know
+------------
 
 Input and output can also be provided as `byte[]`.
 `ProcBuilder` also copes with large amounts of

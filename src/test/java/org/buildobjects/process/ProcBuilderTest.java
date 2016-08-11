@@ -41,6 +41,10 @@ public class ProcBuilderTest {
 
 
     /**
+     *
+     * Output and Input
+     * ----------------
+     *
      * For more control over the execution we'll use a `ProcBuilder` instance to configure
      * the process.
      *
@@ -104,6 +108,9 @@ public class ProcBuilderTest {
     }
 
     /**
+     * The Environment
+     * ---------------
+     *
      * Some external programs are using environment variables. These can also
      * be set using the `withVar` method:
      */
@@ -131,6 +138,10 @@ public class ProcBuilderTest {
     }
 
     /**
+     *
+     * Timeouts
+     * --------
+     *
      * A common usecase for external programs is batch processing of data.
      * These programs might always run into difficulties. Therefore a timeout can be
      * specified. There is a default timeout of 5000ms. If the program does not terminate within the timeout
@@ -164,7 +175,6 @@ public class ProcBuilderTest {
     }
 
 
-
     /**
      * In some cases you might want to disable the timeout.
      *
@@ -187,6 +197,9 @@ public class ProcBuilderTest {
     }
 
     /**
+     * Exit Status
+     * -----------
+     *
      * It is a time honoured tradition that programs signal a failure
      * by returning a non-zero exit value. However in java failure is
      * signalled through exceptions. Non-Zero exit values therefore
@@ -269,6 +282,10 @@ public class ProcBuilderTest {
     }
 
     /**
+     *
+     * Good to Know
+     * ------------
+     *
      * Input and output can also be provided as `byte[]`.
      * `ProcBuilder` also copes with large amounts of
      * data.
