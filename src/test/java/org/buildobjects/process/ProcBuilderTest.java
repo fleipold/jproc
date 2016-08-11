@@ -36,7 +36,7 @@ public class ProcBuilderTest {
     public void filterStringThroughProcess() {
         String output = ProcBuilder.filter("x y z", "sed", "s/y/a/");
 
-        assertEquals("x a z\n", output);
+        assertEquals("x a z", output.trim());
     }
 
 
@@ -311,13 +311,15 @@ public class ProcBuilderTest {
      */
     @Test
     public void testCanCallRunMultipleTimes() throws InterruptedException {
-        ProcBuilder builder = new ProcBuilder("uuidgen");
-        String uuid1 = builder.run().getOutputString();
-        String uuid2 = builder.run().getOutputString();
+        ProcBuilder builder = new ProcBuilder("date");
 
-        assertNotNull(uuid1);
-        assertNotNull(uuid2);
-        assertTrue(!uuid1.equals(uuid2));
+        String date1 = builder.run().getOutputString();
+        Thread.sleep(2000);
+        String date2 = builder.run().getOutputString();
+
+        assertNotNull(date1);
+        assertNotNull(date2);
+        assertTrue(!date1.equals(date2));
     }
 
 }
