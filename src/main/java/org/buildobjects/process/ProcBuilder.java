@@ -20,7 +20,7 @@ public class ProcBuilder {
     private OutputStream stdout = defaultStdout;
     private InputStream stdin;
 
-    private long timoutMillis = 5000;
+    private Long timoutMillis = 5000L;
 
     private Set<Integer> expectedExitStatuses = new HashSet<Integer>(){{add(0);}};
 
@@ -60,12 +60,21 @@ public class ProcBuilder {
     }
 
 
-    /** Specify a timeout for the operation. If not specified the default is 5secs
+    /** Specify a timeout for the operation. If not specified the default is 5 seconds.
      * @param timeoutMillis time that the process gets to run
      * @return this, for chaining
      * */
     public ProcBuilder withTimeoutMillis(long timeoutMillis){
         this.timoutMillis = timeoutMillis;
+        return this;
+    }
+
+    /** Disable timeout for the operation.
+     *
+     * @return this, for chaining
+     * */
+    public ProcBuilder withNoTimeout(){
+        this.timoutMillis = null;
         return this;
     }
 

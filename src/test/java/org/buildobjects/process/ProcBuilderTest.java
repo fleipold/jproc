@@ -180,6 +180,26 @@ public class ProcBuilderTest {
         }
     }
 
+    /** In some cases you might want to disable the timeout.
+     *
+     *  To make this explicit rather than setting the timeout to
+     *  a very large number there is a method to disable the
+     *  timeout.
+     *
+     *  Note: Not having a timeout doesn't necessarily make your system
+     *  more stable. Especially if the process hangs (e.g. waiting for
+     *  input on stdin).
+     *
+     * */
+    @Test
+    public void testDisablingTimoeout(){
+        ProcBuilder builder = new ProcBuilder("sleep")
+            .withArg("7")
+            .withNoTimeout();
+
+        ProcResult result = builder.run();
+        assertEquals(result.getExecutionTime(), 7000, 500);
+    }
 
     /** It is a time honoured tradition that programs signal a failure
      * by returning a non-zero exit value. However in java failure is

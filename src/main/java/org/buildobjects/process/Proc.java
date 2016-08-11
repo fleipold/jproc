@@ -26,7 +26,7 @@ class Proc {
                 InputStream stdin,
                 OutputStream stdout,
                 File directory,
-                long timeout)
+                Long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
     	this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>());
     }
@@ -37,7 +37,7 @@ class Proc {
             InputStream stdin,
             OutputStream stdout,
             File directory,
-            long timeout,
+            Long timeout,
             Set<Integer> expectedExitStatuses)
         throws StartupException, TimeoutException, ExternalProcessFailureException {
 
@@ -71,7 +71,13 @@ class Proc {
             }).start();
 
 
-            boolean success = done.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+            boolean success;
+            if (timeout != null) {
+                success = done.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+            } else {
+                done.acquire();
+                success = true;
+            }
 
             if (!success) {
                 process.destroy();
