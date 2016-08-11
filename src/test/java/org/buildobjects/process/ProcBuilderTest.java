@@ -9,25 +9,54 @@ import java.io.File;
 import static org.junit.Assert.*;
 
 
-/** [DOC]
- *  JProc Five Minute Tutorial*/
+/**
+ * [DOC]
+ * JProc Five Minute Tutorial
+ */
 public class ProcBuilderTest {
 
+
     /**
-     * To launch an external program  we'll use a <code>ProcBuilder</code>. The run method
-     * builds and spawns the actual process and blocks until the process exits.
-     *  The process takes care of writing the output to a stream (as opposed to the standard
+     * For the basic use case of just capturing program output there is a static method:
+     */
+
+    @Test
+    public void testCapturingOutput() {
+        String output = ProcBuilder.run("echo", "Hello World!");
+
+        assertEquals("Hello World!\n", output);
+    }
+
+    /**
+     * There is another static method that filters a given string through
+     * a program:
+     */
+
+    @Test
+    public void filterStringThroughProcess() {
+        String output = ProcBuilder.filter("x y z", "sed", "s/y/a/");
+
+        assertEquals("x a z\n", output);
+    }
+
+
+    /**
+     * For more control over the execution we'll use a `ProcBuilder` instance to configure
+     * the process.
+     *
+     * The run method builds and spawns the actual process and blocks until the process exits.
+     * The process takes care of writing the output to a stream, as opposed to the standard
      * facilities in the JDK that expect the client to actively consume the
      * output from an input stream:
-     * */
+     */
     @Test
-    public void testOutputToStream(){
+    public void testOutputToStream() {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         new ProcBuilder("echo")
-                .withArg("Hello World!")
-                .withOutputStream(output)
-                .run();
+            .withArg("Hello World!")
+            .withOutputStream(output)
+            .run();
 
         assertEquals("Hello World!\n", output.toString());
     }
@@ -36,12 +65,12 @@ public class ProcBuilderTest {
      * The input can be read from an arbitrary input stream, like this:
      */
     @Test
-    public void testInputFromStream(){
+    public void testInputFromStream() {
         ByteArrayInputStream input = new ByteArrayInputStream("Hello cruel World".getBytes());
 
         ProcResult result = new ProcBuilder("wc")
-                .withArgs("-w")
-                .withInputStream(input).run();
+            .withArgs("-w")
+            .withInputStream(input).run();
 
         assertEquals("3", result.getOutputString().trim());
     }
@@ -53,146 +82,102 @@ public class ProcBuilderTest {
      * obtained from the result.
      */
     @Test
-    public void testUsingDefaultOutputStream(){
+    public void testUsingDefaultOutputStream() {
         ProcResult result = new ProcBuilder("echo")
-                                    .withArg("Hello World!")
-                                    .run();
+            .withArg("Hello World!")
+            .run();
 
         assertEquals("Hello World!\n", result.getOutputString());
         assertEquals(0, result.getExitValue());
         assertEquals("echo \"Hello World!\"", result.getProcString());
     }
 
-    /** For providing input there is a convenience method too: */
+    /**
+     * For providing input there is a convenience method too:
+     */
     @Test
-    public void testInputGetsFedIn(){
+    public void testInputGetsFedIn() {
         ProcResult result = new ProcBuilder("cat")
-           .withInput("This is a string").run();
+            .withInput("This is a string").run();
 
         assertEquals("This is a string", result.getOutputString());
     }
 
-    /** Some external programs are using environment variables. These can also
-     * be set using the <code>withVar</code> method*/
+    /**
+     * Some external programs are using environment variables. These can also
+     * be set using the `withVar` method:
+     */
     @Test
-    public void testPassingInVariable(){
+    public void testPassingInVariable() {
         ProcResult result = new ProcBuilder("bash")
-                                    .withArgs("-c", "echo $MYVAR")
-                                    .withVar("MYVAR","my value").run();
+            .withArgs("-c", "echo $MYVAR")
+            .withVar("MYVAR", "my value").run();
 
         assertEquals("my value\n", result.getOutputString());
         assertEquals("bash -c \"echo $MYVAR\"", result.getProcString());
     }
 
-    /** By default the new program is spawned in the working directory of
-     * the parent process. This can be overidden: */
+    /**
+     * By default the new program is spawned in the working directory of
+     * the parent process. This can be overidden:
+     */
     @Test
-    public void testHonorsWorkingDirectory(){
+    public void testHonorsWorkingDirectory() {
         ProcResult result = new ProcBuilder("pwd")
-                .withWorkingDirectory(new File("/"))
-                .run();
+            .withWorkingDirectory(new File("/"))
+            .run();
 
         assertEquals("/\n", result.getOutputString());
     }
 
-    /** Verify that we can specify an exit code to ignore
+    /**
+     * A common usecase for external programs is batch processing of data.
+     * These programs might always run into difficulties. Therefore a timeout can be
+     * specified. There is a default timeout of 5000ms. If the program does not terminate within the timeout
+     * interval it will be terminated and the failure is indicated through
+     * an exception:
      */
     @Test
-    public void testHonorsDefinedExitStatuses() {
-    	try {
-    		ProcResult result = new ProcBuilder("bash")
-    								  .withArgs("-c", "echo Hello World!;exit 100")
-    								  .withExpectedExitStatuses(0, 100)
-    								  .run();
-
-    		assertEquals("Hello World!\n", result.getOutputString());
-            assertEquals(100, result.getExitValue());
-    	}
-    	catch(ExternalProcessFailureException ex) {
-    		fail("An expected exit status should not lead to an exception");
-    	}
+    public void testHonorsTimeout() {
+        ProcBuilder builder = new ProcBuilder("sleep")
+            .withArg("2")
+            .withTimeoutMillis(1000);
+        try {
+            builder.run();
+            fail("Should time out");
+        } catch (TimeoutException ex) {
+            assertEquals("Process 'sleep 2' timed out after 1000ms.", ex.getMessage());
+        }
     }
 
-    /** Verify that we ignore only the specified status codes
+    /**
+     * Even if the process does not timeout, we might be interested in the
+     * execution time. It is also available through the result:
      */
     @Test
-    public void testHonorsOnlyDefinedExitStatuses() {
-    	try {
-    		@SuppressWarnings("unused")
-			ProcResult result = new ProcBuilder("bash")
-    								  .withArgs("-c", "echo Hello World!;exit 99")
-    								  .withExpectedExitStatuses(0,100)
-    								  .run();
-
-    		fail("An exit status that is not part of the expectedExitStatuses should throw");
-    	}
-    	catch(ExternalProcessFailureException ex) {
-            assertEquals(99, ex.getExitValue());
-    	}
-    }
-
-    /** Verify that we can ignore all non-zero exit status codes
-     */
-    @Test
-    public void testHonorsIgnoreExitStatus() {
-    	try {
-    		ProcResult result = new ProcBuilder("bash")
-    								  .withArgs("-c", "echo Hello World!;exit 100")
-    								  .ignoreExitStatus()
-    								  .run();
-
-    		assertEquals("Hello World!\n", result.getOutputString());
-            assertEquals(100, result.getExitValue());
-    	}
-    	catch(ExternalProcessFailureException ex) {
-    		fail("A process started with ignoreExitStatus should not throw an exception");
-    	}
-    }
-
-    /** Even if the process does not timeout, we might be interested in the
-     * execution time. It is also available through the result:*/
-    @Test
-    public void testReportsExecutionTime(){
+    public void testReportsExecutionTime() {
         ProcResult result = new ProcBuilder("sleep")
-                .withArg("0.5")
-                .run();
+            .withArg("0.5")
+            .run();
 
         assertTrue(result.getExecutionTime() > 500 && result.getExecutionTime() < 1000);
     }
 
 
-    /** A common usecase for external programs is batch processing of data.
-     * These programs might always run into difficulties. Therefore a timeout can be
-     * specified. There is a default timeout of 5000ms. If the program does not terminate within the timeout
-     * interval it will be terminated and the failure is indicated through
-     * an exception:*/
-    @Test
-    public void testHonorsTimeout(){
-        ProcBuilder builder = new ProcBuilder("sleep")
-                .withArg("2")
-                .withTimeoutMillis(1000);
-        try {
-            builder.run();
-            fail("Should time out");
-        }
-        catch (TimeoutException ex){
-            assertEquals("Process 'sleep 2' timed out after 1000ms.", ex.getMessage());
-        }
-    }
 
-    /** In some cases you might want to disable the timeout.
+    /**
+     * In some cases you might want to disable the timeout.
      *
-     *  To make this explicit rather than setting the timeout to
-     *  a very large number there is a method to disable the
-     *  timeout.
+     * To make this explicit rather than setting the timeout to
+     * a very large number there is a method to disable the
+     * timeout.
      *
-     *  Note: Not having a timeout doesn't necessarily make your system
-     *  more stable. Especially if the process hangs (e.g. waiting for
-     *  input on stdin).
-     *
-     * */
+     * Note: Not having a timeout doesn't necessarily make your system
+     * more stable. Especially if the process hangs (e.g. waiting for
+     * input on stdin).
+     */
     @Test
-    public void testDisablingTimoeout(){
+    public void testDisablingTimeout() {
         ProcBuilder builder = new ProcBuilder("sleep")
             .withArg("7")
             .withNoTimeout();
@@ -201,19 +186,21 @@ public class ProcBuilderTest {
         assertEquals(result.getExecutionTime(), 7000, 500);
     }
 
-    /** It is a time honoured tradition that programs signal a failure
+    /**
+     * It is a time honoured tradition that programs signal a failure
      * by returning a non-zero exit value. However in java failure is
      * signalled through exceptions. Non-Zero exit values therefore
      * get translated into an exception, that also grants access to
-     * the output on standard error.*/
+     * the output on standard error.
+     */
     @Test
-    public void testNonZeroResultYieldsException(){
+    public void testNonZeroResultYieldsException() {
         ProcBuilder builder = new ProcBuilder("ls")
-                                    .withArg("xyz");
+            .withArg("xyz");
         try {
             builder.run();
             fail("Should throw exception");
-        } catch (ExternalProcessFailureException ex){
+        } catch (ExternalProcessFailureException ex) {
             assertEquals("No such file or directory", ex.getStderr().split("\\:")[2].trim());
             assertTrue(ex.getExitValue() > 0);
             assertEquals("ls xyz", ex.getCommand());
@@ -222,48 +209,72 @@ public class ProcBuilderTest {
         }
     }
 
-
-
-    /** The builder allows to build and spawn several processes from
-     * the same builder instance: */
-    @Test
-    public void testCanCallRunMultipleTimes() throws InterruptedException {
-        ProcBuilder builder = new ProcBuilder("date");
-
-        String date1 = builder.run().getOutputString();
-        Thread.sleep(2000);
-        String date2 = builder.run().getOutputString();
-
-        assertNotNull(date1);
-        assertNotNull(date2);
-        assertTrue(!date1.equals(date2));
-    }
-
-    /** For convenience there is also a static method that just runs a
-     * program and captures the ouput:
+    /**
+     * In some cases a non-zero exit code doesn't indicate an error, but it is
+     * used to return a result, e.g. with `grep`.
+     *
+     * In that case throwing an exception would be inappropriate. To prevent an
+     * exception from being thrown we can configure the builder to ignore the exit
+     * status:
      */
     @Test
-    public void testStaticRun(){
-        String output = ProcBuilder.run("echo", "Hello World!");
+    public void testHonorsIgnoreExitStatus() {
+        try {
+            ProcResult result = new ProcBuilder("bash")
+                .withArgs("-c", "echo Hello World!;exit 100")
+                .ignoreExitStatus()
+                .run();
 
-        assertEquals("Hello World!\n", output);
+            assertEquals("Hello World!\n", result.getOutputString());
+            assertEquals(100, result.getExitValue());
+        } catch (ExternalProcessFailureException ex) {
+            fail("A process started with ignoreExitStatus should not throw an exception");
+        }
     }
 
-    /** Also there is a static method that filters a given string through
-     * a program:
+    /**
+     * It is also possible to specify a set of expected status codes that will not lead
+     * to an exception:
      */
     @Test
-    public void testStaticFilter(){
-        String output = ProcBuilder.filter("x y z","sed" ,"s/y/a/");
+    public void testHonorsDefinedExitStatuses() {
+        try {
+            ProcResult result = new ProcBuilder("bash")
+                .withArgs("-c", "echo Hello World!;exit 100")
+                .withExpectedExitStatuses(0, 100)
+                .run();
 
-        assertEquals("x a z", output.trim());
+            assertEquals("Hello World!\n", result.getOutputString());
+            assertEquals(100, result.getExitValue());
+        } catch (ExternalProcessFailureException ex) {
+            fail("An expected exit status should not lead to an exception");
+        }
     }
 
-    /** Input and output can also be provided as <code>byte[]</code>.
-     * <code>ProcBuilder</code> also copes with large amounts of
-     * data.*/
+    /**
+     * Satus codes that are not expected will so still lead to an exception:
+     */
     @Test
-    public void testCopesWithLargeAmountOfData(){
+    public void testHonorsOnlyDefinedExitStatuses() {
+        try {
+            ProcResult result = new ProcBuilder("bash")
+                .withArgs("-c", "echo Hello World!;exit 99")
+                .withExpectedExitStatuses(0, 100)
+                .run();
+
+            fail("An exit status that is not part of the expectedExitStatuses should throw");
+        } catch (ExternalProcessFailureException ex) {
+            assertEquals(99, ex.getExitValue());
+        }
+    }
+
+    /**
+     * Input and output can also be provided as `byte[]`.
+     * `ProcBuilder` also copes with large amounts of
+     * data.
+     */
+    @Test
+    public void testCopesWithLargeAmountOfData() {
         int MEGA = 1024 * 1024;
         byte[] data = new byte[4 * MEGA];
         for (int i = 0; i < data.length; i++) {
@@ -271,11 +282,25 @@ public class ProcBuilderTest {
         }
 
         ProcResult result = new ProcBuilder("gzip")
-                .withInput(data)
-                .run();
+            .withInput(data)
+            .run();
 
         assertTrue(result.getOutputBytes().length > 2 * MEGA);
     }
 
+    /**
+     * The builder allows to build and spawn several processes from
+     * the same builder instance:
+     */
+    @Test
+    public void testCanCallRunMultipleTimes() throws InterruptedException {
+        ProcBuilder builder = new ProcBuilder("uuidgen");
+        String uuid1 = builder.run().getOutputString();
+        String uuid2 = builder.run().getOutputString();
+
+        assertNotNull(uuid1);
+        assertNotNull(uuid2);
+        assertTrue(!uuid1.equals(uuid2));
+    }
 
 }

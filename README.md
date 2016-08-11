@@ -31,17 +31,18 @@ String output = ProcBuilder.run("echo", "Hello World!");
 assertEquals("Hello World!\n", output);
 ~~~
 
-Also there is a static method that filters a given string through
+There is another static method that filters a given string through
 a program:
 
 ~~~ .java
-String output = ProcBuilder.filter("x y z","sed" ,"s/y/a/");
+String output = ProcBuilder.filter("x y z", "sed", "s/y/a/");
 
 assertEquals("x a z\n", output);
 ~~~
 
 For more control over the execution we'll use a `ProcBuilder` instance to configure
 the process.
+
 The run method builds and spawns the actual process and blocks until the process exits.
 The process takes care of writing the output to a stream, as opposed to the standard
 facilities in the JDK that expect the client to actively consume the
@@ -51,9 +52,9 @@ output from an input stream:
 ByteArrayOutputStream output = new ByteArrayOutputStream();
 
 new ProcBuilder("echo")
-        .withArg("Hello World!")
-        .withOutputStream(output)
-        .run();
+    .withArg("Hello World!")
+    .withOutputStream(output)
+    .run();
 
 assertEquals("Hello World!\n", output.toString());
 ~~~
@@ -64,8 +65,8 @@ The input can be read from an arbitrary input stream, like this:
 ByteArrayInputStream input = new ByteArrayInputStream("Hello cruel World".getBytes());
 
 ProcResult result = new ProcBuilder("wc")
-        .withArgs("-w")
-        .withInputStream(input).run();
+    .withArgs("-w")
+    .withInputStream(input).run();
 
 assertEquals("3", result.getOutputString().trim());
 ~~~
@@ -77,8 +78,8 @@ obtained from the result.
 
 ~~~ .java
 ProcResult result = new ProcBuilder("echo")
-                            .withArg("Hello World!")
-                            .run();
+    .withArg("Hello World!")
+    .run();
 
 assertEquals("Hello World!\n", result.getOutputString());
 assertEquals(0, result.getExitValue());
@@ -89,21 +90,32 @@ For providing input there is a convenience method too:
 
 ~~~ .java
 ProcResult result = new ProcBuilder("cat")
-   .withInput("This is a string").run();
+    .withInput("This is a string").run();
 
 assertEquals("This is a string", result.getOutputString());
 ~~~
 
 Some external programs are using environment variables. These can also
-be set using the `withVar` method
+be set using the `withVar` method:
 
 ~~~ .java
 ProcResult result = new ProcBuilder("bash")
-                            .withArgs("-c", "echo $MYVAR")
-                            .withVar("MYVAR","my value").run();
+    .withArgs("-c", "echo $MYVAR")
+    .withVar("MYVAR", "my value").run();
 
 assertEquals("my value\n", result.getOutputString());
 assertEquals("bash -c \"echo $MYVAR\"", result.getProcString());
+~~~
+
+By default the new program is spawned in the working directory of
+the parent process. This can be overidden:
+
+~~~ .java
+ProcResult result = new ProcBuilder("pwd")
+    .withWorkingDirectory(new File("/"))
+    .run();
+
+assertEquals("/\n", result.getOutputString());
 ~~~
 
 A common usecase for external programs is batch processing of data.
@@ -114,14 +126,13 @@ an exception:
 
 ~~~ .java
 ProcBuilder builder = new ProcBuilder("sleep")
-        .withArg("2")
-        .withTimeoutMillis(1000);
+    .withArg("2")
+    .withTimeoutMillis(1000);
 try {
     builder.run();
     fail("Should time out");
-}
-catch (TimeoutException ex){
-    assertEquals("Process 'sleep' timed out after 1000ms.", ex.getMessage());
+} catch (TimeoutException ex) {
+    assertEquals("Process 'sleep 2' timed out after 1000ms.", ex.getMessage());
 }
 ~~~
 
@@ -130,85 +141,108 @@ execution time. It is also available through the result:
 
 ~~~ .java
 ProcResult result = new ProcBuilder("sleep")
-        .withArg("0.5")
-        .withTimeoutMillis(1000)
-        .run();
+    .withArg("0.5")
+    .run();
 
 assertTrue(result.getExecutionTime() > 500 && result.getExecutionTime() < 1000);
 ~~~
 
-By default the new program is spawned in the working directory of
-the parent process. This can be overidden:
+In some cases you might want to disable the timeout.
+
+To make this explicit rather than setting the timeout to
+a very large number there is a method to disable the
+timeout.
+
+Note: Not having a timeout doesn't necessarily make your system
+more stable. Especially if the process hangs (e.g. waiting for
+input on stdin).
 
 ~~~ .java
-ProcResult result = new ProcBuilder("pwd")
-        .withWorkingDirectory(new File("/"))
-        .run();
+ProcBuilder builder = new ProcBuilder("sleep")
+    .withArg("7")
+    .withNoTimeout();
 
-assertEquals("/\n", result.getOutputString());
+ProcResult result = builder.run();
+assertEquals(result.getExecutionTime(), 7000, 500);
 ~~~
 
 It is a time honoured tradition that programs signal a failure
 by returning a non-zero exit value. However in java failure is
-signalled through exceptions. Non-zero exit values therefore
+signalled through exceptions. Non-Zero exit values therefore
 get translated into an exception, that also grants access to
 the output on standard error.
 
 ~~~ .java
 ProcBuilder builder = new ProcBuilder("ls")
-                            .withArg("xyz");
+    .withArg("xyz");
 try {
     builder.run();
     fail("Should throw exception");
-} catch (ExternalProcessFailureException ex){
-    assertEquals("External process 'ls' returned 1.\n" +
-                 "ls: xyz: No such file or directory\n",
-                 ex.getMessage());
-    assertEquals("ls: xyz: No such file or directory\n", ex.getStderr());
-    assertEquals(1, ex.getExitValue());
-    assertEquals("ls", ex.getCommand());
+} catch (ExternalProcessFailureException ex) {
+    assertEquals("No such file or directory", ex.getStderr().split("\\:")[2].trim());
+    assertTrue(ex.getExitValue() > 0);
+    assertEquals("ls xyz", ex.getCommand());
+    assertTrue(ex.getTime() > 0);
+
 }
 ~~~
 
-There are times when you will call a program that normally returns
-a non-zero exit value.  If the program can return one of several
-exit status values that are considered "OK", you can specify the list
-of valid exit status codes.
+In some cases a non-zero exit code doesn't indicate an error, but it is
+used to return a result, e.g. with `grep`.
+
+In that case throwing an exception would be inappropriate. To prevent an
+exception from being thrown we can configure the builder to ignore the exit
+status:
 
 ~~~ .java
 try {
     ProcResult result = new ProcBuilder("bash")
-                              .withArgs("-c", "echo Hello World!;exit 100")
-                              .ignoreExitStatus()
-                              .run();
+        .withArgs("-c", "echo Hello World!;exit 100")
+        .ignoreExitStatus()
+        .run();
 
     assertEquals("Hello World!\n", result.getOutputString());
     assertEquals(100, result.getExitValue());
-} catch(ExternalProcessFailureException ex) {
+} catch (ExternalProcessFailureException ex) {
     fail("A process started with ignoreExitStatus should not throw an exception");
 }
 ~~~
 
-There are also times when it is appropriate to simply ignore the
-exit status completely.
+It is also possible to specify a set of expected status codes that will not lead
+to an exception:
 
 ~~~ .java
 try {
-	ProcResult result = new ProcBuilder("bash")
-							  .withArgs("-c", "echo Hello World!;exit 100")
-							  .ignoreExitStatus()
-							  .run();
+    ProcResult result = new ProcBuilder("bash")
+        .withArgs("-c", "echo Hello World!;exit 100")
+        .withExpectedExitStatuses(0, 100)
+        .run();
 
-	assertEquals("Hello World!\n", result.getOutputString());
+    assertEquals("Hello World!\n", result.getOutputString());
     assertEquals(100, result.getExitValue());
-} catch(ExternalProcessFailureException ex) {
-	fail("A process started with ignoreExitStatus should not throw an exception");
+} catch (ExternalProcessFailureException ex) {
+    fail("An expected exit status should not lead to an exception");
+}
+~~~
+
+Satus codes that are not expected will so still lead to an exception:
+
+~~~ .java
+try {
+    ProcResult result = new ProcBuilder("bash")
+        .withArgs("-c", "echo Hello World!;exit 99")
+        .withExpectedExitStatuses(0, 100)
+        .run();
+
+    fail("An exit status that is not part of the expectedExitStatuses should throw");
+} catch (ExternalProcessFailureException ex) {
+    assertEquals(99, ex.getExitValue());
 }
 ~~~
 
 Input and output can also be provided as `byte[]`.
-`ProcBuilder` copes with large amounts of
-data:
+`ProcBuilder` also copes with large amounts of
+data.
 
 ~~~ .java
 int MEGA = 1024 * 1024;
@@ -218,8 +252,8 @@ for (int i = 0; i < data.length; i++) {
 }
 
 ProcResult result = new ProcBuilder("gzip")
-   .withInput(data)
-   .run();
+    .withInput(data)
+    .run();
 
 assertTrue(result.getOutputBytes().length > 2 * MEGA);
 ~~~
@@ -236,4 +270,3 @@ assertNotNull(uuid1);
 assertNotNull(uuid2);
 assertTrue(!uuid1.equals(uuid2));
 ~~~
-
