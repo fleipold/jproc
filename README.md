@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/fleipold/jproc.svg?branch=master)](https://travis-ci.org/fleipold/jproc)
-[![Maven Central](https://img.shields.io/maven-central/v/org.buildobjects/jproc.svg?maxAge=2592000)]()
-
+[![Maven Central](https://img.shields.io/maven-central/v/org.buildobjects/jproc.svg?maxAge=2592000)](https://mvnrepository.com/artifact/org.buildobjects/jproc)
 
 Intro
 -----
