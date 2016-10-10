@@ -10,9 +10,34 @@ import static org.junit.Assert.*;
 
 
 /**
- * [DOC]
- * JProc Five Minute Tutorial
+ * [DOC file=README.md]
+ *
+ * [![Build Status](https://travis-ci.org/fleipold/jproc.svg?branch=master)](https://travis-ci.org/fleipold/jproc)
+ * [![Maven Central](https://img.shields.io/maven-central/v/org.buildobjects/jproc.svg?maxAge=2592000)](https://mvnrepository.com/artifact/org.buildobjects/jproc)
+ *
+ * Intro
+ * -----
+ *
+ * Running external commands in Java is an error prone task.
+ * JProc helps managing input and output of external processes as
+ * well as error conditions. It uses sensible defaults, such as throwing an
+ * exception if a process terminates with a non zero exit code.
+ *
+ * Getting Started
+ * ---------------
+ *
+ * To get started  either download the [jar](https://oss.sonatype.org/content/repositories/releases/org/buildobjects/jproc/2/jproc-2.jar) or
+ * if you are using maven add this snippet to your pom:
+ *
+ * ~~~ .xml
+ * <dependency>
+ *     <groupId>org.buildobjects</groupId>
+ *     <artifactId>jproc</artifactId>
+ *     <version>2.2.0</version>
+ * </dependency>
+ * ~~~
  */
+
 public class ProcBuilderTest {
 
 

@@ -17,9 +17,9 @@ if you are using maven add this snippet to your pom:
 
 ~~~ .xml
 <dependency>
-          <groupId>org.buildobjects</groupId>
-          <artifactId>jproc</artifactId>
-          <version>2.2.0</version>
+    <groupId>org.buildobjects</groupId>
+    <artifactId>jproc</artifactId>
+    <version>2.2.0</version>
 </dependency>
 ~~~
 
@@ -37,7 +37,7 @@ a program:
 ~~~ .java
 String output = ProcBuilder.filter("x y z", "sed", "s/y/a/");
 
-assertEquals("x a z\n", output);
+assertEquals("x a z", output.trim());
 ~~~
 
 Output and Input
@@ -277,11 +277,13 @@ The builder allows to build and spawn several processes from
 the same builder instance:
 
 ~~~ .java
-ProcBuilder builder = new ProcBuilder("uuidgen");
-String uuid1 = builder.run().getOutputString();
-String uuid2 = builder.run().getOutputString();
+ProcBuilder builder = new ProcBuilder("date");
 
-assertNotNull(uuid1);
-assertNotNull(uuid2);
-assertTrue(!uuid1.equals(uuid2));
+String date1 = builder.run().getOutputString();
+Thread.sleep(2000);
+String date2 = builder.run().getOutputString();
+
+assertNotNull(date1);
+assertNotNull(date2);
+assertTrue(!date1.equals(date2));
 ~~~
