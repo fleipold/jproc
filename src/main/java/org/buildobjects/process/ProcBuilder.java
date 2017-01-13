@@ -186,11 +186,9 @@ public class ProcBuilder {
             Proc proc = new Proc(command, args, env, stdin, stdout, directory, timoutMillis, expectedExitStatuses);
 
             return new ProcResult(proc.toString(), defaultStdout == stdout ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
-        }
-        finally {
-            defaultStdout = new ByteArrayOutputStream();
+        } finally {
+            stdout = defaultStdout = new ByteArrayOutputStream();
             stdin = null;
-            stdout = defaultStdout;
         }
     }
 
