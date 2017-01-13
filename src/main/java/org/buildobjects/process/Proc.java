@@ -28,7 +28,7 @@ class Proc {
                 File directory,
                 Long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
-    	this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>());
+        this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>());
     }
 
     public Proc(String command,
