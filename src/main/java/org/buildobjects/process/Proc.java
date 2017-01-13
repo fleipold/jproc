@@ -134,7 +134,7 @@ class Proc {
             } else {
                 temp.append(arg);
             }
-            if (stringIterator.hasNext()){
+            if (stringIterator.hasNext()) {
                 temp.append(" ");
             }
 

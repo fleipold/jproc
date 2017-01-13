@@ -27,7 +27,7 @@ public class ProcResult {
 
 
     private ByteArrayOutputStream getOutputStream() throws IllegalStateException {
-        if (output == null){
+        if (output == null) {
             throw new IllegalStateException("Output has been consumed by client provided OutputStream");
         }
         return output;
@@ -43,7 +43,7 @@ public class ProcResult {
 
     /** @return the standard output as byte[]
      *  @throws IllegalStateException if an OutputStream has been provided to captured the output */
-    public byte[] getOutputBytes() throws IllegalStateException{
+    public byte[] getOutputBytes() throws IllegalStateException {
         return getOutputStream().toByteArray();
     }
 

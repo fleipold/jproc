@@ -42,7 +42,7 @@ public class ProcBuilder {
      * @param arg to add
      * @return this, for chaining
      * */
-    public ProcBuilder withArg(String arg){
+    public ProcBuilder withArg(String arg) {
         args.add(arg);
         return this;
 
@@ -54,7 +54,7 @@ public class ProcBuilder {
      * @param stdout stream to redirect the output to. \
      * @return this, for chaining
      * */
-    public ProcBuilder withOutputStream(OutputStream stdout){
+    public ProcBuilder withOutputStream(OutputStream stdout) {
         this.stdout = stdout;
         return this;
     }
@@ -64,7 +64,7 @@ public class ProcBuilder {
      * @param timeoutMillis time that the process gets to run
      * @return this, for chaining
      * */
-    public ProcBuilder withTimeoutMillis(long timeoutMillis){
+    public ProcBuilder withTimeoutMillis(long timeoutMillis) {
         this.timoutMillis = timeoutMillis;
         return this;
     }
@@ -73,7 +73,7 @@ public class ProcBuilder {
      *
      * @return this, for chaining
      * */
-    public ProcBuilder withNoTimeout(){
+    public ProcBuilder withNoTimeout() {
         this.timoutMillis = null;
         return this;
     }
@@ -83,7 +83,7 @@ public class ProcBuilder {
      * @param stdin stream to read the input from
      * @return this, for chaining
      */
-    public ProcBuilder withInputStream(InputStream stdin){
+    public ProcBuilder withInputStream(InputStream stdin) {
         this.stdin = stdin;
         return this;
     }
@@ -92,7 +92,7 @@ public class ProcBuilder {
      * @param input the actual input
      * @return this, for chaining
      */
-    ProcBuilder withInput(String input){
+    ProcBuilder withInput(String input) {
         stdin = new ByteArrayInputStream(input.getBytes());
         return this;
     }
@@ -102,7 +102,7 @@ public class ProcBuilder {
      * @param input the actual input
      * @return this, for chaining
      */
-    ProcBuilder withInput(byte[] input){
+    ProcBuilder withInput(byte[] input) {
         stdin = new ByteArrayInputStream(input);
         return this;
     }
@@ -111,8 +111,8 @@ public class ProcBuilder {
      * @param directory the working directory for the process
      * @return this, for chaining
      */
-    public ProcBuilder withWorkingDirectory(File directory){
-        if (!directory.isDirectory()){
+    public ProcBuilder withWorkingDirectory(File directory) {
+        if (!directory.isDirectory()) {
             throw new IllegalArgumentException("File '" + directory.getPath() + "' is not a directory.");
         }
         this.directory = directory;
@@ -181,8 +181,8 @@ public class ProcBuilder {
      * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value*/
-    public ProcResult run() throws StartupException, TimeoutException, ExternalProcessFailureException{
-        try{
+    public ProcResult run() throws StartupException, TimeoutException, ExternalProcessFailureException {
+        try {
             Proc proc = new Proc(command, args, env, stdin, stdout, directory, timoutMillis, expectedExitStatuses);
 
             return new ProcResult(proc.toString(), defaultStdout == stdout ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
