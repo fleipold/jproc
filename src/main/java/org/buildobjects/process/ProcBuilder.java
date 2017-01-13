@@ -194,7 +194,7 @@ public class ProcBuilder {
 
     /** Static helper to run a process
      * @param cmd the command
-     * @param args the argmuments
+     * @param args the arguments
      * @return the standard output
      * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
@@ -210,7 +210,7 @@ public class ProcBuilder {
     /** Static helper to filter a string through a process
      * @param input the input to be fed into the process
      * @param cmd the command
-     * @param args the argmuments
+     * @param args the arguments
      * @return the standard output
      * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
