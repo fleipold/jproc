@@ -1,10 +1,9 @@
 package org.buildobjects.process;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.*;
 
 import static org.junit.Assert.*;
 
@@ -345,6 +344,112 @@ public class ProcBuilderTest {
         assertNotNull(date1);
         assertNotNull(date2);
         assertTrue(!date1.equals(date2));
+    }
+
+    /**
+     * Pipes
+     * -----
+     *
+     * Here is how you can consume stdout in a streaming fashion (for example line by line):
+     */
+    @Test
+    public void testLineByLinePipe() {
+        new ProcBuilder("echo")
+            .withArgs("line1\nline2")
+            .withOutputConsumer(new StreamConsumer() {
+                public void consume(InputStream stream) throws IOException {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                    assertEquals("line1", reader.readLine());
+                    assertEquals("line2", reader.readLine());
+                    assertNull(reader.readLine());
+                }
+            })
+            .withTimeoutMillis(2000)
+            .run();
+    }
+
+    /**
+     * [NO-DOC]
+     */
+    @Test
+    public void testLargerPipe() throws IOException, InterruptedException {
+        new ProcBuilder("head")
+            .withArgs("--bytes=10000000")
+            .withArg("/dev/urandom")
+
+            .withOutputConsumer(new StreamConsumer() {
+                public void consume(InputStream stream) throws IOException {
+                    int counter = 0;
+                    while (stream.read() != -1) {
+                        counter++;
+                    }
+                    assertEquals(10000000, counter);
+                }
+            })
+            .withTimeoutMillis(20000)
+            .run();
+    }
+
+    /**
+     * [NO-DOC]
+     */
+    @Ignore("This is an aspirational test")
+    @Test(expected=Exception.class)
+    public void testExceptionInConsumer() throws IOException, InterruptedException {
+        new ProcBuilder("echo")
+            .withArgs("line1\nline2")
+            .withOutputConsumer(new StreamConsumer() {
+                public void consume(InputStream stream) throws IOException {
+                    throw new IOException("Oops!");
+                }
+            })
+            .withTimeoutMillis(20000)
+            .run();
+    }
+
+    /**
+     * [NO-DOC]
+     */
+    @Test(expected=IllegalArgumentException.class)
+    public void testWithOutputConsumerClashesWithWithOutputStream() throws IOException, InterruptedException {
+        new ProcBuilder("who")
+            .withOutputConsumer(new StreamConsumer() {
+                public void consume(InputStream stream) throws IOException {
+                }
+            })
+            .withOutputStream(new ByteArrayOutputStream())
+            .run();
+    }
+
+    /**
+     * [NO-DOC]
+     */
+    @Test(expected=IllegalStateException.class)
+    public void testGetOutputStringClashesWithWithOutputConsumer() throws IOException, InterruptedException {
+        ProcResult result = new ProcBuilder("man")
+            .withArgs("man")
+            .withOutputConsumer(new StreamConsumer() {
+                public void consume(InputStream stream) throws IOException {
+                    while (stream.read() != -1) {
+                    }
+                }
+            })
+            .withTimeoutMillis(1000)
+            .run();
+
+        result.getOutputString();
+    }
+
+    /**
+     * [NO-DOC]
+     */
+    @Test(expected=IllegalStateException.class)
+    public void testGetOutputStringClashesWithWithOutputStream() throws IOException, InterruptedException {
+        ProcResult result = new ProcBuilder("man")
+            .withArgs("man")
+            .withOutputStream(new ByteArrayOutputStream())
+            .run();
+        result.getOutputString();
     }
 
 }

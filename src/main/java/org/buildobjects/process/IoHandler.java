@@ -1,8 +1,6 @@
 package org.buildobjects.process;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 class IoHandler {
     Thread errConsumer;
@@ -15,7 +13,7 @@ class IoHandler {
         InputStream err = process.getErrorStream();
         OutputStream in = process.getOutputStream();
 
-        outConsumer = startConsumption(stdout, out, false);
+        outConsumer = startConsumption(stdout, out, stdout instanceof PipedOutputStream);
         errConsumer = startConsumption(stderr, err, false);
         inFeeder = startConsumption(in, stdin, true);
     }
@@ -42,13 +40,13 @@ class IoHandler {
     private class StreamCopyRunner implements Runnable {
         InputStream in;
         OutputStream out;
-        private boolean closeWriter;
+        private boolean closeStreamAfterConsumingInput;
         private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
-        private StreamCopyRunner(InputStream in, OutputStream out, boolean closeWriter) {
+        private StreamCopyRunner(InputStream in, OutputStream out, boolean closeStreamAfterConsumingInput) {
             this.in = in;
             this.out = out;
-            this.closeWriter = closeWriter;
+            this.closeStreamAfterConsumingInput = closeStreamAfterConsumingInput;
         }
 
         public void run() {
@@ -63,7 +61,7 @@ class IoHandler {
                 while (-1 != (n = in.read(buffer))) {
                     out.write(buffer, 0, n);
                 }
-                if (closeWriter) {
+                if (closeStreamAfterConsumingInput) {
                     out.close();
                 }
             } catch (IOException e) {
@@ -71,5 +69,4 @@ class IoHandler {
             }
         }
     }
-
 }

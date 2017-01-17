@@ -26,6 +26,8 @@ public class ProcBuilder {
 
     private File directory;
 
+    private StreamConsumer outputConsumer;
+
 
     /** Creates a new ProcBuilder
      * @param command The command to run
@@ -182,10 +184,45 @@ public class ProcBuilder {
      * @throws TimeoutException if the timeout kicked in
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value*/
     public ProcResult run() throws StartupException, TimeoutException, ExternalProcessFailureException {
+
+        if (stdout != defaultStdout && outputConsumer != null) {
+            throw new IllegalArgumentException("You can either ...");
+        }
         try {
+            Thread pipeConsumerThread = null;
+
+            if ( outputConsumer != null) {
+                final PipedInputStream pipedInputStream = new PipedInputStream();
+                final PipedOutputStream pipedOutputStream = new PipedOutputStream();
+
+                stdout = pipedOutputStream;
+                try {
+                    pipedInputStream.connect(pipedOutputStream);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to create pipe for output processing.", e);
+                }
+
+                pipeConsumerThread = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            outputConsumer.consume(pipedInputStream);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+                pipeConsumerThread.start();
+            }
+
             Proc proc = new Proc(command, args, env, stdin, stdout, directory, timoutMillis, expectedExitStatuses);
 
+            if (pipeConsumerThread != null) {
+                pipeConsumerThread.join();
+            }
+
             return new ProcResult(proc.toString(), defaultStdout == stdout ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
             stdout = defaultStdout = new ByteArrayOutputStream();
             stdin = null;
@@ -231,6 +268,18 @@ public class ProcBuilder {
      * @return this, for chaining*/
     public ProcBuilder withVar(String var, String value) {
         env.put(var, value);
+        return this;
+    }
+
+    /**
+     * Process the standard output with the given consumer object
+     *
+     * @param outputConsumer an object that defines how to process the standard output stream
+     * @return this, for chaining
+     */
+    public ProcBuilder withOutputConsumer(StreamConsumer outputConsumer) {
+        this.outputConsumer = outputConsumer;
+
         return this;
     }
 }

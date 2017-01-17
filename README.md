@@ -287,3 +287,23 @@ assertNotNull(date1);
 assertNotNull(date2);
 assertTrue(!date1.equals(date2));
 ~~~
+
+Pipes
+-----
+
+Here is how you can consume stdout in a streaming fashion (for example line by line):
+
+~~~ .java
+new ProcBuilder("echo")
+    .withArgs("line1\nline2")
+    .withOutputConsumer(new StreamConsumer() {
+        public void consume(InputStream stream) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            assertEquals("line1", reader.readLine());
+            assertEquals("line2", reader.readLine());
+            assertNull(reader.readLine());
+        }
+    })
+    .withTimeoutMillis(2000)
+    .run();
+~~~
