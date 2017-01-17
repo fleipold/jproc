@@ -206,8 +206,8 @@ public class ProcBuilder {
                     public void run() {
                         try {
                             outputConsumer.consume(pipedInputStream);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                        } catch (Throwable t) {
+
                         }
                     }
                 });

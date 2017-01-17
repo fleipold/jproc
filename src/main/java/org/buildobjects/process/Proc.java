@@ -3,8 +3,12 @@ package org.buildobjects.process;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+
+import static java.lang.Integer.MAX_VALUE;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.buildobjects.process.ExecutionEvent.PROCESS_EXITED;
 
 /**
  * Internal implementation of the process mechanics
@@ -19,6 +23,9 @@ class Proc {
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
     private final String command;
     private final List<String> args;
+    private final Long timeout;
+    private final BlockingQueue<ExecutionEvent> eventQueue = new LinkedBlockingQueue<ExecutionEvent>();
+    private final IoHandler ioHandler;
 
     public Proc(String command,
                 List<String> args,
@@ -43,50 +50,35 @@ class Proc {
 
         this.command = command;
         this.args = args;
+        this.timeout = timeout;
         String[] envArray = getEnv(env);
-
         String[] cmdArray = concatenateCmdArgs();
         long t1 = System.currentTimeMillis();
-        IoHandler ioHandler ;
+
         try {
             process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
-
-
             ioHandler = new IoHandler(stdin, stdout, err, process);
 
         } catch (IOException e) {
             throw new StartupException("Could not startup process '" + toString() + "'.", e);
         }
 
-
         try {
-            final Semaphore done = new Semaphore(1);
-            done.acquire();
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        exitValue = process.waitFor();
-                        done.release();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException("", e);
-                    }
+            startControlThread();
+
+            do {
+                ExecutionEvent nextEvent = timeout == null ? eventQueue.poll(MAX_VALUE, HOURS) : eventQueue.poll(timeout, MILLISECONDS);
+
+                if (nextEvent == null) {
+                    killCleanUpAndThrowTimeoutException();
                 }
-            }).start();
 
+                if (nextEvent == PROCESS_EXITED) {
+                    break;
+                }
 
-            boolean success;
-            if (timeout != null) {
-                success = done.tryAcquire(timeout, TimeUnit.MILLISECONDS);
-            } else {
-                done.acquire();
-                success = true;
-            }
-
-            if (!success) {
-                process.destroy();
-                ioHandler.cancelConsumption();
-                throw new TimeoutException(toString(), timeout);
-            }
+                throw new RuntimeException("Felix reckons we should never reach this point");
+            } while (true);
 
             ioHandler.joinConsumption();
 
@@ -99,6 +91,29 @@ class Proc {
         } catch (InterruptedException e) {
             throw new RuntimeException("", e);
         }
+    }
+
+    private void startControlThread() {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    exitValue = process.waitFor();
+                    dispatch(PROCESS_EXITED);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("", e);
+                }
+            }
+        }).start();
+    }
+
+    private void killCleanUpAndThrowTimeoutException() {
+        process.destroy();
+        ioHandler.cancelConsumption();
+        throw new TimeoutException(toString(), timeout);
+    }
+
+    public void dispatch(ExecutionEvent event) throws InterruptedException {
+        eventQueue.put(event);
     }
 
     private String[] getEnv(Map<String, String> env) {
@@ -140,7 +155,6 @@ class Proc {
             if (stringIterator.hasNext()) {
                 temp.append(" ");
             }
-
         }
         return temp.toString();
     }

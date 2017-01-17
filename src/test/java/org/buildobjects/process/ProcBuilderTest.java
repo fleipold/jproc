@@ -374,7 +374,7 @@ public class ProcBuilderTest {
     @Test
     public void testLargerPipe() throws IOException, InterruptedException {
         new ProcBuilder("head")
-            .withArgs("--bytes=10000000")
+            .withArgs("-c 10000000")
             .withArg("/dev/urandom")
 
             .withOutputConsumer(new StreamConsumer() {
@@ -393,7 +393,7 @@ public class ProcBuilderTest {
     /**
      * [NO-DOC]
      */
-    @Ignore("This is an aspirational test")
+    //@Ignore("This is an aspirational test")
     @Test(expected=Exception.class)
     public void testExceptionInConsumer() throws IOException, InterruptedException {
         new ProcBuilder("echo")
