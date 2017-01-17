@@ -1,5 +1,6 @@
 package org.buildobjects.process;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.*;
@@ -392,7 +393,8 @@ public class ProcBuilderTest {
     /**
      * [NO-DOC]
      */
-    @Test
+    @Ignore("This is an aspirational test")
+    @Test(expected=Exception.class)
     public void testExceptionInConsumer() throws IOException, InterruptedException {
         new ProcBuilder("echo")
             .withArgs("line1\nline2")
@@ -410,7 +412,7 @@ public class ProcBuilderTest {
      */
     @Test(expected=IllegalArgumentException.class)
     public void testWithOutputConsumerClashesWithWithOutputStream() throws IOException, InterruptedException {
-        new ProcBuilder("man")
+        new ProcBuilder("who")
             .withOutputConsumer(new StreamConsumer() {
                 public void consume(InputStream stream) throws IOException {
                 }
@@ -418,4 +420,36 @@ public class ProcBuilderTest {
             .withOutputStream(new ByteArrayOutputStream())
             .run();
     }
+
+    /**
+     * [NO-DOC]
+     */
+    @Test(expected=IllegalStateException.class)
+    public void testGetOutputStringClashesWithWithOutputConsumer() throws IOException, InterruptedException {
+        ProcResult result = new ProcBuilder("man")
+            .withArgs("man")
+            .withOutputConsumer(new StreamConsumer() {
+                public void consume(InputStream stream) throws IOException {
+                    while (stream.read() != -1) {
+                    }
+                }
+            })
+            .withTimeoutMillis(1000)
+            .run();
+
+        result.getOutputString();
+    }
+
+    /**
+     * [NO-DOC]
+     */
+    @Test(expected=IllegalStateException.class)
+    public void testGetOutputStringClashesWithWithOutputStream() throws IOException, InterruptedException {
+        ProcResult result = new ProcBuilder("man")
+            .withArgs("man")
+            .withOutputStream(new ByteArrayOutputStream())
+            .run();
+        result.getOutputString();
+    }
+
 }
