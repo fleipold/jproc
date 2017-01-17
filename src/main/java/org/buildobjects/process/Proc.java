@@ -50,7 +50,10 @@ class Proc {
         IoHandler ioHandler ;
         try {
             process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
+
+
             ioHandler = new IoHandler(stdin, stdout, err, process);
+
         } catch (IOException e) {
             throw new StartupException("Could not startup process '" + toString() + "'.", e);
         }
