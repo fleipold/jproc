@@ -188,41 +188,11 @@ public class ProcBuilder {
         if (stdout != defaultStdout && outputConsumer != null) {
             throw new IllegalArgumentException("You can either ...");
         }
+
         try {
-            Thread pipeConsumerThread = null;
+            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, expectedExitStatuses);
 
-            if ( outputConsumer != null) {
-                final PipedInputStream pipedInputStream = new PipedInputStream();
-                final PipedOutputStream pipedOutputStream = new PipedOutputStream();
-
-                stdout = pipedOutputStream;
-                try {
-                    pipedInputStream.connect(pipedOutputStream);
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to create pipe for output processing.", e);
-                }
-
-                pipeConsumerThread = new Thread(new Runnable() {
-                    public void run() {
-                        try {
-                            outputConsumer.consume(pipedInputStream);
-                        } catch (Throwable t) {
-
-                        }
-                    }
-                });
-                pipeConsumerThread.start();
-            }
-
-            Proc proc = new Proc(command, args, env, stdin, stdout, directory, timoutMillis, expectedExitStatuses);
-
-            if (pipeConsumerThread != null) {
-                pipeConsumerThread.join();
-            }
-
-            return new ProcResult(proc.toString(), defaultStdout == stdout ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            return new ProcResult(proc.toString(), defaultStdout == stdout && outputConsumer == null ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
         } finally {
             stdout = defaultStdout = new ByteArrayOutputStream();
             stdin = null;
