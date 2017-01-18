@@ -1,10 +1,6 @@
 package org.buildobjects.process;
 
-/**
- * This class ${end}
- */
-public interface ExecutionEvent {
 
+enum ExecutionEvent {
+    PROCESS_EXITED, EXCEPTION_IN_STREAM_HANDLING
 }
-
-

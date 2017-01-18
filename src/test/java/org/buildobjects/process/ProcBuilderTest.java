@@ -393,18 +393,23 @@ public class ProcBuilderTest {
     /**
      * [NO-DOC]
      */
-    //@Ignore("This is an aspirational test")
-    @Test(expected=Exception.class)
+    @Test
     public void testExceptionInConsumer() throws IOException, InterruptedException {
-        new ProcBuilder("echo")
-            .withArgs("line1\nline2")
-            .withOutputConsumer(new StreamConsumer() {
-                public void consume(InputStream stream) throws IOException {
-                    throw new IOException("Oops!");
-                }
-            })
-            .withTimeoutMillis(20000)
-            .run();
+        try {
+            new ProcBuilder("echo")
+                .withArgs("line1\nline2")
+                .withOutputConsumer(new StreamConsumer() {
+                    public void consume(InputStream stream) throws IOException {
+                        throw new IOException("Oops!");
+                    }
+                })
+                .withTimeoutMillis(20000)
+                .run();
+
+            fail("Expected to get an Exception.");
+        } catch (IllegalStateException ex){
+
+        }
     }
 
     /**

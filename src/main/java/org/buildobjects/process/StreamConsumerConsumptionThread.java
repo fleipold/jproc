@@ -3,13 +3,16 @@ package org.buildobjects.process;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.buildobjects.process.ExecutionEvent.EXCEPTION_IN_STREAM_HANDLING;
+
 /**
  * This class ${end}
  */
-public class StreamConsumerConsumptionThread implements OutputConsumptionThread {
+class StreamConsumerConsumptionThread implements OutputConsumptionThread {
     private final EventSink eventSink;
     private final StreamConsumer stdout;
     private Thread thread;
+    private Throwable throwable;
 
     public StreamConsumerConsumptionThread(EventSink eventSink, StreamConsumer stdout) {
         this.eventSink = eventSink;
@@ -18,12 +21,15 @@ public class StreamConsumerConsumptionThread implements OutputConsumptionThread 
 
     public void startConsumption(final InputStream inputStream) {
         this.thread = new Thread(new Runnable() {
+
+
             public void run() {
                 try {
                     stdout.consume(inputStream);
 
                 } catch (Throwable t) {
-                    eventSink.dispatch(new ExceptionEvent(t));
+                    StreamConsumerConsumptionThread.this.throwable = t;
+                    eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
                 }
             }
         });
@@ -31,7 +37,14 @@ public class StreamConsumerConsumptionThread implements OutputConsumptionThread 
     }
 
     public void join() throws InterruptedException {
-
         thread.join();
+    }
+
+    public void interrupt() {
+        thread.interrupt();
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
     }
 }

@@ -2,26 +2,35 @@ package org.buildobjects.process;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 
-public class ByteArrayConsumptionThread implements OutputConsumptionThread {
+import static org.buildobjects.process.ExecutionEvent.EXCEPTION_IN_STREAM_HANDLING;
+
+class ByteArrayConsumptionThread implements OutputConsumptionThread {
 
     private Thread thread;
+    private Throwable throwable;
+
+    private byte[] bytes;
+    private final EventSink eventSink;
+
+    ByteArrayConsumptionThread(EventSink eventSink) {
+        this.eventSink = eventSink;
+    }
 
     public byte[] getBytes() {
         return bytes;
     }
 
-    private byte[] bytes;
 
     public void startConsumption(final InputStream inputStream) {
         thread = new Thread(new Runnable() {
             public void run() {
                 try {
                     bytes = IOUtils.toByteArray(inputStream);
-                } catch (IOException e) {
-                    throw new RuntimeException("", e);
+                } catch (Throwable t) {
+                    ByteArrayConsumptionThread.this.throwable = t;
+                    eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
                 }
             }
         });
@@ -31,5 +40,13 @@ public class ByteArrayConsumptionThread implements OutputConsumptionThread {
 
     public void join() throws InterruptedException {
         thread.join();
+    }
+
+    public void interrupt() {
+        thread.interrupt();
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
     }
 }

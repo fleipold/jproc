@@ -8,7 +8,9 @@ import java.util.concurrent.*;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.buildobjects.process.SimpleExecutionEvent.PROCESS_EXITED;
+import static org.buildobjects.process.ExecutionEvent.EXCEPTION_IN_STREAM_HANDLING;
+import static org.buildobjects.process.ExecutionEvent.PROCESS_EXITED;
+
 
 /**
  * Internal implementation of the process mechanics
@@ -20,7 +22,7 @@ class Proc implements EventSink {
 
     private long executionTime;
 
-    private final ByteArrayConsumptionThread err = new ByteArrayConsumptionThread();
+    private final ByteArrayConsumptionThread err = new ByteArrayConsumptionThread(this);
     private final String command;
     private final List<String> args;
     private final Long timeout;
@@ -61,7 +63,7 @@ class Proc implements EventSink {
             process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
 
             if (stdout instanceof OutputStream) {
-                stdoutConsumer = new StreamCopyConsumptionThread((OutputStream)stdout);
+                stdoutConsumer = new StreamCopyConsumptionThread((OutputStream)stdout, this);
             }  else if (stdout instanceof StreamConsumer) {
                 stdoutConsumer = new StreamConsumerConsumptionThread(Proc.this, (StreamConsumer)stdout);
             } else {throw new RuntimeException("Badness, badness");}
@@ -87,16 +89,18 @@ class Proc implements EventSink {
                     break;
                 }
 
-                if (nextEvent instanceof ExceptionEvent) {
-                    Throwable t = ((ExceptionEvent)nextEvent).t;
-                    killProcessCleanupAndThrow(t);
+                if (nextEvent == EXCEPTION_IN_STREAM_HANDLING) {
+                    killProcessCleanup();
+                    break;
                 }
-
 
                 throw new RuntimeException("Felix reckons we should never reach this point");
             } while (true);
 
-            ioHandler.joinConsumption();
+            List<Throwable> exceptions = ioHandler.joinConsumption();
+            if (!exceptions.isEmpty()) {
+                throw new IllegalStateException("Exception in stream consumption", exceptions.get(0));
+            }
 
             executionTime = System.currentTimeMillis() - t1;
 
@@ -130,11 +134,9 @@ class Proc implements EventSink {
     }
 
 
-    private void killProcessCleanupAndThrow(Throwable t) {
+    private void killProcessCleanup() {
         process.destroy();
         ioHandler.cancelConsumption();
-        throw new IllegalStateException("inputConsumer threw exception", t);
-
     }
 
     public void dispatch(ExecutionEvent event)  {

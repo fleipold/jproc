@@ -1,12 +1,18 @@
 package org.buildobjects.process;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 class IoHandler {
+    private final OutputConsumptionThread stdout;
+    private final OutputConsumptionThread stderr;
     Thread inFeeder;
 
 
-    IoHandler(InputStream stdin, OutputConsumptionThread    stdout, OutputConsumptionThread stderr, Process process) {
+    IoHandler(InputStream stdin, OutputConsumptionThread stdout, OutputConsumptionThread stderr, Process process) {
+        this.stdout = stdout;
+        this.stderr = stderr;
         InputStream out = process.getInputStream();
         InputStream err = process.getErrorStream();
         OutputStream in = process.getOutputStream();
@@ -16,12 +22,29 @@ class IoHandler {
         inFeeder = startConsumption(in, stdin, true);
     }
 
-    void joinConsumption() throws InterruptedException {
+    List<Throwable> joinConsumption() throws InterruptedException {
         inFeeder.join();
+        stdout.join();
+        stderr.join();
+
+        List<Throwable> exceptions = new ArrayList<Throwable>();
+
+        if (stdout.getThrowable() != null) {
+            exceptions.add(stdout.getThrowable());
+        }
+
+        if (stderr.getThrowable() != null) {
+            exceptions.add(stderr.getThrowable());
+        }
+
+        return exceptions;
+
     }
 
     void cancelConsumption() {
-        inFeeder.stop();
+        inFeeder.interrupt();
+        stdout.interrupt();
+        stderr.interrupt();
     }
 
     Thread startConsumption(OutputStream stdout, InputStream out, boolean closeAfterWriting) {
