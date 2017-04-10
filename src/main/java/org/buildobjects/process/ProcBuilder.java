@@ -19,6 +19,7 @@ public class ProcBuilder {
 
     private OutputStream stdout = defaultStdout;
     private InputStream stdin;
+    private OutputStream stderr;
 
     private Long timoutMillis = 5000L;
 
@@ -58,6 +59,17 @@ public class ProcBuilder {
      * */
     public ProcBuilder withOutputStream(OutputStream stdout) {
         this.stdout = stdout;
+        return this;
+    }
+
+    /** Redirecting the error output. If it is not redirected the output gets captured in memory and
+     * is available on the @see ProcResult
+     *
+     * @param stderr stream to redirect the output to. \
+     * @return this, for chaining
+     * */
+    public ProcBuilder withErrorStream(OutputStream stderr) {
+        this.stderr = stderr;
         return this;
     }
 
@@ -190,9 +202,9 @@ public class ProcBuilder {
         }
 
         try {
-            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, expectedExitStatuses);
+            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, expectedExitStatuses, stderr);
 
-            return new ProcResult(proc.toString(), defaultStdout == stdout && outputConsumer == null ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime());
+            return new ProcResult(proc.toString(), defaultStdout == stdout && outputConsumer == null ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime(), proc.getErrorBytes());
         } finally {
             stdout = defaultStdout = new ByteArrayOutputStream();
             stdin = null;

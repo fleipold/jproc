@@ -22,7 +22,7 @@ class Proc implements EventSink {
 
     private long executionTime;
 
-    private final ByteArrayConsumptionThread err = new ByteArrayConsumptionThread(this);
+    private final OutputConsumptionThread err;
     private final String command;
     private final List<String> args;
     private final Long timeout;
@@ -37,7 +37,7 @@ class Proc implements EventSink {
                 File directory,
                 Long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
-        this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>());
+        this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>(), null);
     }
 
     public Proc(String command,
@@ -48,6 +48,20 @@ class Proc implements EventSink {
             File directory,
             Long timeout,
             Set<Integer> expectedExitStatuses)
+        throws StartupException, TimeoutException, ExternalProcessFailureException {
+
+        this(command, args, env, stdin, stdout, directory, timeout, expectedExitStatuses, null);
+    }
+
+    public Proc(String command,
+            List<String> args,
+            Map<String, String> env,
+            InputStream stdin,
+            Object stdout,
+            File directory,
+            Long timeout,
+            Set<Integer> expectedExitStatuses,
+            Object stderr)
         throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
@@ -62,11 +76,13 @@ class Proc implements EventSink {
         try {
             process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
 
-            if (stdout instanceof OutputStream) {
-                stdoutConsumer = new StreamCopyConsumptionThread((OutputStream)stdout, this);
-            }  else if (stdout instanceof StreamConsumer) {
-                stdoutConsumer = new StreamConsumerConsumptionThread(Proc.this, (StreamConsumer)stdout);
-            } else {throw new RuntimeException("Badness, badness");}
+            stdoutConsumer = createStreamConsumer(stdout);
+
+            if(stderr == null) {
+                err = new ByteArrayConsumptionThread(this);
+            } else {
+                err = createStreamConsumer(stderr);
+            }
 
 
             ioHandler = new IoHandler(stdin, stdoutConsumer, err, process);
@@ -105,7 +121,7 @@ class Proc implements EventSink {
             executionTime = System.currentTimeMillis() - t1;
 
             if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(exitValue)) {
-                throw new ExternalProcessFailureException(toString(), exitValue, new String(err.getBytes()), executionTime);
+                throw new ExternalProcessFailureException(toString(), exitValue, new String(getErrorBytes()), executionTime);
             }
 
         } catch (InterruptedException e) {
@@ -113,6 +129,21 @@ class Proc implements EventSink {
         }
     }
 
+    private OutputConsumptionThread createStreamConsumer(Object stream) {
+            if (stream instanceof OutputStream) {
+                return new StreamCopyConsumptionThread((OutputStream)stream, this);
+            }  else if (stream instanceof StreamConsumer) {
+                return new StreamConsumerConsumptionThread(Proc.this, (StreamConsumer)stream);
+            } else {throw new RuntimeException("Badness, badness");}
+    }
+
+    byte[] getErrorBytes() {
+        if(err instanceof ByteArrayConsumptionThread) {
+            return ((ByteArrayConsumptionThread)err).getBytes();
+        }
+        // Output stream/stream consumer was provided by user, we don't own it.
+        return null;
+    }
 
     private void startControlThread() {
         new Thread(new Runnable() {
