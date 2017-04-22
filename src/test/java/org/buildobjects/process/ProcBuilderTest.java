@@ -457,4 +457,33 @@ public class ProcBuilderTest {
         result.getOutputString();
     }
 
+    /**
+     * Error output can also be captured
+     */
+    @Test
+    public void testErrorOutput() {
+        ProcResult result = new ProcBuilder("bash")
+            .withArgs("-c", ">&2 echo error\nerror2;echo out\nout2")
+            .run();
+
+        assertEquals("out\nout2\n", result.getOutputString());
+        assertEquals("err\nerr2\n", result.getErrorString());
+    }
+
+    /**
+     * Error output can be captured with output stream
+     */
+    @Test
+    public void testErrorOutputStream() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        new ProcBuilder("bash")
+            .withArgs("-c", ">&2 echo error\nerror2;echo out\nout2")
+            .withOutputStream(out)
+            .withErrorStream(err)
+            .run();
+
+        assertEquals("out\nout2\n", out.toString());
+        assertEquals("err\nerr2\n", err.toString());
+    }
 }

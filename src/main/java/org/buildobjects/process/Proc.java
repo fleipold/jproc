@@ -121,7 +121,7 @@ class Proc implements EventSink {
             executionTime = System.currentTimeMillis() - t1;
 
             if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(exitValue)) {
-                throw new ExternalProcessFailureException(toString(), exitValue, new String(getErrorBytes()), executionTime);
+                throw new ExternalProcessFailureException(toString(), exitValue, getErrorString(), executionTime);
             }
 
         } catch (InterruptedException e) {
@@ -143,6 +143,11 @@ class Proc implements EventSink {
         }
         // Output stream/stream consumer was provided by user, we don't own it.
         return null;
+    }
+
+    private String getErrorString() {
+        byte[] bytes = getErrorBytes();
+        return bytes != null ? new String(bytes) : null;
     }
 
     private void startControlThread() {
