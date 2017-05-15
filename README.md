@@ -312,11 +312,11 @@ Error output can also be captured
 
 ~~~ .java
 ProcResult result = new ProcBuilder("bash")
-    .withArgs("-c", ">&2 echo error\nerror2;echo out\nout2")
+    .withArgs("-c", ">&2 echo error;>&2 echo error2; echo out;echo out2")
     .run();
 
 assertEquals("out\nout2\n", result.getOutputString());
-assertEquals("err\nerr2\n", result.getErrorString());
+assertEquals("error\nerror2\n", result.getErrorString());
 ~~~
 
 Error output can be captured with output stream
@@ -325,11 +325,11 @@ Error output can be captured with output stream
 ByteArrayOutputStream out = new ByteArrayOutputStream();
 ByteArrayOutputStream err = new ByteArrayOutputStream();
 new ProcBuilder("bash")
-    .withArgs("-c", ">&2 echo error\nerror2;echo out\nout2")
+    .withArgs("-c", ">&2 echo error;>&2 echo error2; echo out;echo out2")
     .withOutputStream(out)
     .withErrorStream(err)
     .run();
 
 assertEquals("out\nout2\n", out.toString());
-assertEquals("err\nerr2\n", err.toString());
+assertEquals("error\nerror2\n", err.toString());
 ~~~
