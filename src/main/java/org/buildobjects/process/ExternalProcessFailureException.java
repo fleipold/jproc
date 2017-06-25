@@ -19,7 +19,11 @@ public class ExternalProcessFailureException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return "External process '" + command + "' returned " + exitValue +" after " + time + "ms\n" + stderr ;
+        return
+            "External process '" + command +
+            "' returned " + exitValue +
+            " after " + time + "ms\n" +
+            (stderr != null ? stderr : "Stderr unavailable as it has been consumed by user provided stream.") ;
     }
 
     /** @return the command that was executed */

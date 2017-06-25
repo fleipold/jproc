@@ -308,7 +308,7 @@ new ProcBuilder("echo")
     .run();
 ~~~
 
-Error output can also be captured
+Error output can also be accessed directly:
 
 ~~~ .java
 ProcResult result = new ProcBuilder("bash")
@@ -319,7 +319,7 @@ assertEquals("out\nout2\n", result.getOutputString());
 assertEquals("error\nerror2\n", result.getErrorString());
 ~~~
 
-Error output can be captured with output stream
+Alteratively an output stream can be passed in:
 
 ~~~ .java
 ByteArrayOutputStream out = new ByteArrayOutputStream();

@@ -458,7 +458,7 @@ public class ProcBuilderTest {
     }
 
     /**
-     * Error output can also be captured
+     * Error output can also be accessed directly:
      */
     @Test
     public void testErrorOutput() {
@@ -471,7 +471,7 @@ public class ProcBuilderTest {
     }
 
     /**
-     * Error output can be captured with output stream
+     * Alteratively an output stream can be passed in:
      */
     @Test
     public void testErrorOutputStream() {
@@ -485,5 +485,32 @@ public class ProcBuilderTest {
 
         assertEquals("out\nout2\n", out.toString());
         assertEquals("error\nerror2\n", err.toString());
+    }
+
+    /**
+     *
+     * [NO-DOC]
+     *
+     * If stderr has been consumed by user provided stream, it is not available
+     * for populating the {@link ExternalProcessFailureException}.
+     */
+    @Test
+    public void testNonZeroResultYieldsExceptionAndDoesntFail() {
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        ProcBuilder builder = new ProcBuilder("ls")
+            .withArg("xyz")
+            .withErrorStream(err);
+
+        try {
+            builder.run();
+            fail("Should throw exception");
+        } catch (ExternalProcessFailureException ex) {
+            assertTrue(ex.getMessage().endsWith("Stderr unavailable as it has been consumed by user provided stream."));
+            assertTrue(ex.getExitValue() > 0);
+            assertEquals("ls xyz", ex.getCommand());
+            assertTrue(ex.getTime() > 0);
+
+        }
     }
 }
