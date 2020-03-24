@@ -106,7 +106,7 @@ public class ProcBuilder {
      * @param input the actual input
      * @return this, for chaining
      */
-    ProcBuilder withInput(String input) {
+    public ProcBuilder withInput(String input) {
         stdin = new ByteArrayInputStream(input.getBytes());
         return this;
     }
@@ -116,7 +116,7 @@ public class ProcBuilder {
      * @param input the actual input
      * @return this, for chaining
      */
-    ProcBuilder withInput(byte[] input) {
+    public ProcBuilder withInput(byte[] input) {
         stdin = new ByteArrayInputStream(input);
         return this;
     }
