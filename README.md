@@ -19,7 +19,7 @@ if you are using maven add this snippet to your pom:
 <dependency>
     <groupId>org.buildobjects</groupId>
     <artifactId>jproc</artifactId>
-    <version>2.3.0</version>
+    <version>2.2.0</version>
 </dependency>
 ~~~
 
@@ -86,7 +86,7 @@ ProcResult result = new ProcBuilder("echo")
 
 assertEquals("Hello World!\n", result.getOutputString());
 assertEquals(0, result.getExitValue());
-assertEquals("echo \"Hello World!\"", result.getProcString());
+assertEquals("echo 'Hello World!'", result.getProcString());
 ~~~
 
 For providing input there is a convenience method too:
@@ -110,7 +110,7 @@ ProcResult result = new ProcBuilder("bash")
     .withVar("MYVAR", "my value").run();
 
 assertEquals("my value\n", result.getOutputString());
-assertEquals("bash -c \"echo $MYVAR\"", result.getProcString());
+assertEquals("bash -c 'echo $MYVAR'", result.getProcString());
 ~~~
 
 By default the new program is spawned in the working directory of
@@ -332,4 +332,22 @@ new ProcBuilder("bash")
 
 assertEquals("out\nout2\n", out.toString());
 assertEquals("error\nerror2\n", err.toString());
+~~~
+
+String Representations
+----------------------
+
+The builder can also return a string representation of
+the invocation. Naturally this method doesn't support chaining,
+that means you'll have to store the builder in a variable
+to finally run the process.
+
+~~~ .java
+final ProcBuilder echoBuilder = new ProcBuilder("echo")
+    .withArgs("Hello World!");
+
+assertEquals("echo 'Hello World!'", echoBuilder.getProcString());
+
+ProcResult result = echoBuilder.run();
+assertEquals("Hello World!\n", result.getOutputString());
 ~~~

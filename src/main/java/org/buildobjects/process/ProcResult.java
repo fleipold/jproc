@@ -23,7 +23,13 @@ public class ProcResult {
         this.err = err != null ? Arrays.copyOf(err, err.length) : null;
     }
 
-    /** @return  a string representation of the process execution */
+    /** @return  a string representation of the process invocation.
+     *
+     *           This approximates the representation of this invocation
+     *           in a shell. Note that the escaping of arguments is incomplete,
+     *           it works only for whitespace. Fancy control characters are
+     *           not replaced.
+     */
     public String getProcString() {
         return procString;
     }

@@ -117,7 +117,7 @@ public class ProcBuilderTest {
 
         assertEquals("Hello World!\n", result.getOutputString());
         assertEquals(0, result.getExitValue());
-        assertEquals("echo \"Hello World!\"", result.getProcString());
+        assertEquals("echo 'Hello World!'", result.getProcString());
     }
 
     /**
@@ -145,7 +145,7 @@ public class ProcBuilderTest {
             .withVar("MYVAR", "my value").run();
 
         assertEquals("my value\n", result.getOutputString());
-        assertEquals("bash -c \"echo $MYVAR\"", result.getProcString());
+        assertEquals("bash -c 'echo $MYVAR'", result.getProcString());
     }
 
     /**
@@ -512,5 +512,47 @@ public class ProcBuilderTest {
             assertTrue(ex.getTime() > 0);
 
         }
+    }
+
+
+    /**
+     * String Representations
+     * ----------------------
+     *
+     * The builder can also return a string representation of
+     * the invocation. Naturally this method doesn't support chaining,
+     * that means you'll have to store the builder in a variable
+     * to finally run the process.
+     */
+    @Test
+    public void testProcStringRepresentations() {
+
+        final ProcBuilder echoBuilder = new ProcBuilder("echo")
+            .withArgs("Hello World!");
+
+        assertEquals("echo 'Hello World!'", echoBuilder.getProcString());
+
+        ProcResult result = echoBuilder.run();
+        assertEquals("Hello World!\n", result.getOutputString());
+    }
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void testStringEscaping(){
+        assertEquals(
+            "echo 'Hello '\"'\"'World'\"'\"'!'",
+            new ProcBuilder("echo")
+                .withArgs("Hello 'World'!")
+                .getProcString()
+        );
+
+        assertEquals(
+            "echo 'Hello\n'\"'\"'World'\"'\"'!'",
+            new ProcBuilder("echo")
+                .withArgs("Hello\n'World'!")
+                .getProcString()
+        );
     }
 }

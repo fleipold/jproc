@@ -4,6 +4,8 @@ package org.buildobjects.process;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.concurrent.TimeUnit.HOURS;
@@ -207,23 +209,36 @@ class Proc implements EventSink {
 
     @Override
     public String toString() {
-        return command + " " + argString();
+        return formatCommand(command, args);
     }
 
-    private String argString() {
+    static String formatCommand(String command, List<String> args) {
+      return command + " " + argsString(args);
+    }
+
+    private static String argsString(List<String> args) {
         StringBuffer temp = new StringBuffer();
         for (Iterator<String> stringIterator = args.iterator(); stringIterator.hasNext();) {
             String arg = stringIterator.next();
-            if (arg.contains(" ")) {
-                temp.append("\"" + arg + "\"");
-            } else {
-                temp.append(arg);
-            }
+            String escapedArg = naiveShellEscape(arg);
+            temp.append(escapedArg);
             if (stringIterator.hasNext()) {
                 temp.append(" ");
             }
         }
         return temp.toString();
+    }
+
+    private static String naiveShellEscape(String arg) {
+        Pattern p = Pattern.compile("\\s");
+        Matcher m = p.matcher(arg);
+        String escapedArg;
+        if (m.find()) {
+            escapedArg = "'" + arg.replaceAll("'","'\"'\"'") + "'";
+        } else {
+            escapedArg = arg;
+        }
+        return escapedArg;
     }
 
     public int getExitValue() {

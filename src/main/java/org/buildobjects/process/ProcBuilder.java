@@ -264,4 +264,19 @@ public class ProcBuilder {
 
         return this;
     }
+
+    /** @return  a string representation of the process invocation.
+     *
+     *           This approximates the representation of this invocation
+     *           in a shell. Note that the escaping of arguments is incomplete,
+     *           it works only for whitespace. Fancy control characters are
+     *           not replaced.
+     *
+     *           Also, this returns a representation of the current state of
+     *           the builder. If more arguments are added the process this
+     *           representation will not represent the process that gets launched.
+     */
+    public String getProcString() {
+        return Proc.formatCommand(command, args);
+    }
 }
