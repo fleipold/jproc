@@ -202,7 +202,11 @@ public class ProcBuilder {
         }
 
         try {
-            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, expectedExitStatuses, stderr);
+            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, stderr);
+
+            if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(proc.getExitValue())) {
+                throw new ExternalProcessFailureException(proc.toString(), proc.getExitValue(), proc.getErrorString(), proc.getExecutionTime());
+            }
 
             return new ProcResult(proc.toString(), defaultStdout == stdout && outputConsumer == null ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime(), proc.getErrorBytes());
         } finally {

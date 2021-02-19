@@ -2,6 +2,7 @@ package org.buildobjects.process;
 
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
@@ -39,31 +40,17 @@ class Proc implements EventSink {
                 File directory,
                 Long timeout)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
-        this(command, args, env, stdin, stdout, directory, timeout, new HashSet<Integer>(), null);
+        this(command, args, env, stdin, stdout, directory, timeout, null);
     }
 
     public Proc(String command,
-            List<String> args,
-            Map<String, String> env,
-            InputStream stdin,
-            Object stdout,
-            File directory,
-            Long timeout,
-            Set<Integer> expectedExitStatuses)
-        throws StartupException, TimeoutException, ExternalProcessFailureException {
-
-        this(command, args, env, stdin, stdout, directory, timeout, expectedExitStatuses, null);
-    }
-
-    public Proc(String command,
-            List<String> args,
-            Map<String, String> env,
-            InputStream stdin,
-            Object stdout,
-            File directory,
-            Long timeout,
-            Set<Integer> expectedExitStatuses,
-            Object stderr)
+                List<String> args,
+                Map<String, String> env,
+                InputStream stdin,
+                Object stdout,
+                File directory,
+                Long timeout,
+                Object stderr)
         throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
@@ -122,9 +109,6 @@ class Proc implements EventSink {
 
             executionTime = System.currentTimeMillis() - t1;
 
-            if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(exitValue)) {
-                throw new ExternalProcessFailureException(toString(), exitValue, getErrorString(), executionTime);
-            }
 
         } catch (InterruptedException e) {
             throw new RuntimeException("", e);
@@ -147,9 +131,9 @@ class Proc implements EventSink {
         return null;
     }
 
-    private String getErrorString() {
+    public String getErrorString() {
         byte[] bytes = getErrorBytes();
-        return bytes != null ? new String(bytes) : null;
+        return bytes != null ? new String(bytes, StandardCharsets.UTF_8) : null;
     }
 
     private void startControlThread() {
