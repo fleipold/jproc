@@ -5,10 +5,10 @@ package org.buildobjects.process;
  * such as the output on stderr.
  */
 public class ExternalProcessFailureException extends RuntimeException {
-    private String command;
-    private int exitValue;
-    private String stderr;
-    private long time;
+    final private String command;
+    final private int exitValue;
+    final private String stderr;
+    final private long time;
 
     ExternalProcessFailureException(String command, int exitValue, String stderr, long time) {
         this.command = command;
