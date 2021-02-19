@@ -19,7 +19,7 @@ if you are using maven add this snippet to your pom:
 <dependency>
     <groupId>org.buildobjects</groupId>
     <artifactId>jproc</artifactId>
-    <version>2.4.0</version>
+    <version>2.2.0</version>
 </dependency>
 ~~~
 
@@ -237,7 +237,7 @@ try {
 }
 ~~~
 
-Satus codes that are not expected will so still lead to an exception:
+Status codes that are not expected will so still lead to an exception:
 
 ~~~ .java
 try {

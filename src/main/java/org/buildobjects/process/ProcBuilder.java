@@ -204,11 +204,14 @@ public class ProcBuilder {
         try {
             Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, stderr);
 
+            final ByteArrayOutputStream output = defaultStdout == stdout && outputConsumer == null ? defaultStdout : null;
+
             if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(proc.getExitValue())) {
-                throw new ExternalProcessFailureException(proc.toString(), proc.getExitValue(), proc.getErrorString(), proc.getExecutionTime());
+                throw new ExternalProcessFailureException(proc.toString(), proc.getExitValue(), proc.getErrorString(), output, proc.getExecutionTime());
             }
 
-            return new ProcResult(proc.toString(), defaultStdout == stdout && outputConsumer == null ? defaultStdout : null, proc.getExitValue(), proc.getExecutionTime(), proc.getErrorBytes());
+
+            return new ProcResult(proc.toString(), output, proc.getExitValue(), proc.getExecutionTime(), proc.getErrorBytes());
         } finally {
             stdout = defaultStdout = new ByteArrayOutputStream();
             stdin = null;

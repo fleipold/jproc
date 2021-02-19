@@ -246,6 +246,39 @@ public class ProcBuilderTest {
         }
     }
 
+    /** [NO-DOC] */
+    @Test
+    public void testNonZeroResultYieldsExceptionWithOnlyStdout() {
+        ProcBuilder builder = new ProcBuilder("bash")
+            .withArgs("-c", "echo Standard Out; exit 1");
+        try {
+            builder.run();
+            fail("Should throw exception");
+        } catch (ExternalProcessFailureException ex) {
+            assertTrue(ex.getExitValue() == 1);
+            assertTrue(ex.getTime() > 0);
+            assertEquals("Standard Out", ex.getMessage().split("\n")[1].trim());
+        }
+    }
+
+    /** [NO-DOC] */
+    @Test
+    public void testNonZeroResultYieldsExceptionWithStdErrAndStdout() {
+        ProcBuilder builder = new ProcBuilder("bash")
+            .withArgs("-c", ">&2 echo Standard Error; echo Standard Out Line 1;echo Standard Out Line 2; exit 1");
+        try {
+            builder.run();
+            fail("Should throw exception");
+        } catch (ExternalProcessFailureException ex) {
+            assertTrue(ex.getExitValue() == 1);
+            assertTrue(ex.getTime() > 0);
+            final String[] messageLines = ex.getMessage().split("\n");
+            assertEquals("STDERR: Standard Error", messageLines[1].trim());
+            assertEquals("STDOUT: Standard Out Line 1", messageLines[2].trim());
+            assertEquals("STDOUT: Standard Out Line 2", messageLines[3].trim());
+        }
+    }
+
     /**
      * In some cases a non-zero exit code doesn't indicate an error, but it is
      * used to return a result, e.g. with `grep`.
@@ -289,7 +322,7 @@ public class ProcBuilderTest {
     }
 
     /**
-     * Satus codes that are not expected will so still lead to an exception:
+     * Status codes that are not expected will so still lead to an exception:
      */
     @Test
     public void testHonorsOnlyDefinedExitStatuses() {
