@@ -1,6 +1,5 @@
 package org.buildobjects.process;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.*;
@@ -240,7 +239,7 @@ public class ProcBuilderTest {
         } catch (ExternalProcessFailureException ex) {
             assertEquals("No such file or directory", ex.getStderr().split("\\:")[2].trim());
             assertTrue(ex.getExitValue() > 0);
-            assertEquals("ls xyz", ex.getCommand());
+            assertEquals("ls xyz", ex.getCommandLine());
             assertTrue(ex.getTime() > 0);
 
         }
@@ -257,7 +256,11 @@ public class ProcBuilderTest {
         } catch (ExternalProcessFailureException ex) {
             assertTrue(ex.getExitValue() == 1);
             assertTrue(ex.getTime() > 0);
-            assertEquals("Standard Out", ex.getMessage().split("\n")[1].trim());
+
+            final String[] messageLines = ex.getMessage().split("\n");
+            assertEquals("External process `bash` terminated with unexpected exit status 1 after X:", messageLines[0].replaceAll("\\d+ms","X"));
+            assertEquals("  $ bash -c 'echo Standard Out; exit 1'", messageLines[1]);
+            assertEquals("  STDOUT: Standard Out", messageLines[2]);
         }
     }
 
@@ -273,9 +276,9 @@ public class ProcBuilderTest {
             assertTrue(ex.getExitValue() == 1);
             assertTrue(ex.getTime() > 0);
             final String[] messageLines = ex.getMessage().split("\n");
-            assertEquals("STDERR: Standard Error", messageLines[1].trim());
-            assertEquals("STDOUT: Standard Out Line 1", messageLines[2].trim());
-            assertEquals("STDOUT: Standard Out Line 2", messageLines[3].trim());
+            assertEquals("  STDERR: Standard Error", messageLines[2]);
+            assertEquals("  STDOUT: Standard Out Line 1", messageLines[3]);
+            assertEquals("  STDOUT: Standard Out Line 2", messageLines[4]);
         }
     }
 
@@ -539,9 +542,13 @@ public class ProcBuilderTest {
             builder.run();
             fail("Should throw exception");
         } catch (ExternalProcessFailureException ex) {
-            assertTrue(ex.getMessage().endsWith("Stderr unavailable as it has been consumed by user provided stream."));
+            final String[] messageLines = ex.getMessage().split("\n");
+
+            assertEquals("External process `ls` terminated with unexpected exit status 1 after X:", messageLines[0].replaceAll("\\d+ms", "X"));
+            assertEquals("  $ ls xyz", messageLines[1]);
+            assertEquals("  STDERR: <Has already been consumed.>", messageLines[2]);
             assertTrue(ex.getExitValue() > 0);
-            assertEquals("ls xyz", ex.getCommand());
+            assertEquals("ls xyz", ex.getCommandLine());
             assertTrue(ex.getTime() > 0);
 
         }

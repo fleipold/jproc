@@ -14,7 +14,6 @@ public class ProcResult {
     private final long executionTime;
     private final byte[] err;
 
-
     ProcResult(String procString, ByteArrayOutputStream output, int exitValue, long executionTime, byte[] err) {
         this.procString = procString;
         this.output = output;
@@ -29,11 +28,24 @@ public class ProcResult {
      *           in a shell. Note that the escaping of arguments is incomplete,
      *           it works only for whitespace. Fancy control characters are
      *           not replaced.
+     *
+     *           @deprecated Use #getCommandLine() instead.
      */
+    @Deprecated
     public String getProcString() {
         return procString;
     }
 
+    /** @return  a string representation of the process invocation.
+     *
+     *           This approximates the representation of this invocation
+     *           in a shell. Note that the escaping of arguments is incomplete,
+     *           it works only for whitespace. Fancy control characters are
+     *           not replaced.
+     */
+    public String getCommandLine() {
+        return procString;
+    }
 
     private ByteArrayOutputStream getOutputStream() throws IllegalStateException {
         if (output == null) {
@@ -41,7 +53,6 @@ public class ProcResult {
         }
         return output;
     }
-
 
     /** @return the standard output as string
      *  @throws IllegalStateException if an OutputStream has been provided to captured the output */

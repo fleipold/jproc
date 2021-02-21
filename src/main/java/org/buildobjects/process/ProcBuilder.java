@@ -207,9 +207,8 @@ public class ProcBuilder {
             final ByteArrayOutputStream output = defaultStdout == stdout && outputConsumer == null ? defaultStdout : null;
 
             if (expectedExitStatuses.size() > 0 && !expectedExitStatuses.contains(proc.getExitValue())) {
-                throw new ExternalProcessFailureException(proc.toString(), proc.getExitValue(), proc.getErrorString(), output, proc.getExecutionTime());
+                throw new ExternalProcessFailureException(command, proc.toString(), proc.getExitValue(), proc.getErrorString(), output, proc.getExecutionTime());
             }
-
 
             return new ProcResult(proc.toString(), output, proc.getExitValue(), proc.getExecutionTime(), proc.getErrorBytes());
         } finally {
@@ -282,8 +281,26 @@ public class ProcBuilder {
      *           Also, this returns a representation of the current state of
      *           the builder. If more arguments are added the process this
      *           representation will not represent the process that gets launched.
+     *
+     * @deprecated Use getCommandLine instead.
      */
+    @Deprecated
     public String getProcString() {
-        return Proc.formatCommand(command, args);
+        return Proc.formatCommandLine(command, args);
+    }
+
+    /** @return  a string representation of the process invocation.
+     *
+     *           This approximates the representation of this invocation
+     *           in a shell. Note that the escaping of arguments is incomplete,
+     *           it works only for whitespace. Fancy control characters are
+     *           not replaced.
+     *
+     *           Also, this returns a representation of the current state of
+     *           the builder. If more arguments are added the process this
+     *           representation will not represent the process that gets launched.
+     */
+    public String getCommandLine() {
+        return Proc.formatCommandLine(command, args);
     }
 }

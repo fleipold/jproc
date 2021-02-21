@@ -193,10 +193,10 @@ class Proc implements EventSink {
 
     @Override
     public String toString() {
-        return formatCommand(command, args);
+        return formatCommandLine(command, args);
     }
 
-    static String formatCommand(String command, List<String> args) {
+    static String formatCommandLine(String command, List<String> args) {
       return command + " " + argsString(args);
     }
 
