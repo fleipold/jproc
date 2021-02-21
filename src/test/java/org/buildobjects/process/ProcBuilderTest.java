@@ -17,9 +17,10 @@ import static org.junit.Assert.*;
  * -----
  *
  * Running external commands in Java is an error prone task.
- * JProc helps managing input and output of external processes as
- * well as error conditions. It uses sensible defaults, such as throwing an
- * exception if a process terminates with a non zero exit code.
+ * `JProc` helps managing input and output of non-interactive,
+ * external processes as well as error conditions. It uses sensible
+ * defaults, such as throwing an exception if a process terminates
+ * with a non zero exit status.
  *
  * Getting Started
  * ---------------

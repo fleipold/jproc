@@ -5,9 +5,10 @@ Intro
 -----
 
 Running external commands in Java is an error prone task.
-JProc helps managing input and output of external processes as
-well as error conditions. It uses sensible defaults, such as throwing an
-exception if a process terminates with a non zero exit code.
+`JProc` helps managing input and output of non-interactive,
+external processes as well as error conditions. It uses sensible
+defaults, such as throwing an exception if a process terminates
+with a non zero exit status.
 
 Getting Started
 ---------------
@@ -193,7 +194,7 @@ try {
 } catch (ExternalProcessFailureException ex) {
     assertEquals("No such file or directory", ex.getStderr().split("\\:")[2].trim());
     assertTrue(ex.getExitValue() > 0);
-    assertEquals("ls xyz", ex.getCommand());
+    assertEquals("ls xyz", ex.getCommandLine());
     assertTrue(ex.getTime() > 0);
 
 }
