@@ -545,7 +545,11 @@ public class ProcBuilderTest {
         } catch (ExternalProcessFailureException ex) {
             final String[] messageLines = ex.getMessage().split("\n");
 
-            assertEquals("External process `ls` terminated with unexpected exit status 1 after X:", messageLines[0].replaceAll("\\d+ms", "X"));
+            assertEquals("External process `ls` terminated with unexpected exit status X after Yms:",
+                messageLines[0]
+                    .replaceAll("status \\d+", "status X") // Exit status differs between gnu and bsd.
+                    .replaceAll("\\d+ms", "Yms")
+            );
             assertEquals("  $ ls xyz", messageLines[1]);
             assertEquals("  STDERR: <Has already been consumed.>", messageLines[2]);
             assertTrue(ex.getExitValue() > 0);
