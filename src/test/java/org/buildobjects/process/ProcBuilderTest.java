@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
  * [DOC file=README.md]
  *
  * [![Build Status](https://travis-ci.org/fleipold/jproc.svg?branch=master)](https://travis-ci.org/fleipold/jproc)
- * [![Maven Central](https://img.shields.io/maven-central/v/org.buildobjects/jproc.svg?maxAge=2592000)](https://mvnrepository.com/artifact/org.buildobjects/jproc)
+ * [![Maven Central](https://img.shields.io/maven-central/v/org.buildobjects/jproc.svg?maxAge=600)](https://mvnrepository.com/artifact/org.buildobjects/jproc)
  *
  * Intro
  * -----
