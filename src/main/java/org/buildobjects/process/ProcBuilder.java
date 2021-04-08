@@ -28,6 +28,7 @@ public class ProcBuilder {
     private File directory;
 
     private StreamConsumer outputConsumer;
+    private StreamConsumer errorConsumer;
 
 
     /** Creates a new ProcBuilder
@@ -202,7 +203,7 @@ public class ProcBuilder {
         }
 
         try {
-            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, stderr);
+            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, errorConsumer != null ? errorConsumer : stderr);
 
             final ByteArrayOutputStream output = defaultStdout == stdout && outputConsumer == null ? defaultStdout : null;
 
@@ -268,6 +269,16 @@ public class ProcBuilder {
     public ProcBuilder withOutputConsumer(StreamConsumer outputConsumer) {
         this.outputConsumer = outputConsumer;
 
+        return this;
+    }
+
+    /**
+     * Process the error output with given consumer object
+     * @param errorConsumer an object that defines how to process the error output stream
+     * @return this, for chaining
+     */
+    public ProcBuilder withErrorConsumer(StreamConsumer errorConsumer) {
+        this.errorConsumer = errorConsumer;
         return this;
     }
 

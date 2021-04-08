@@ -309,6 +309,32 @@ new ProcBuilder("echo")
     .run();
 ~~~
 
+Of course, you can consume stderr in the same way
+
+~~~ .java
+new ProcBuilder("bash")
+    .withArgs("-c", ">&2 echo error;>&2 echo error2;echo stdout")
+    .withOutputConsumer(new StreamConsumer() {
+        @Override
+        public void consume(InputStream stream) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            assertEquals("stdout", reader.readLine());
+            assertNull(reader.readLine());
+        }
+    })
+    .withErrorConsumer(new StreamConsumer() {
+        @Override
+        public void consume(InputStream stream) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            assertEquals("error", reader.readLine());
+            assertEquals("error2", reader.readLine());
+            assertNull(reader.readLine());
+        }
+    })
+    .withTimeoutMillis(2000)
+    .run();
+~~~
+
 Error output can also be accessed directly:
 
 ~~~ .java
