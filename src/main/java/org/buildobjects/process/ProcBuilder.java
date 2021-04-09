@@ -202,6 +202,10 @@ public class ProcBuilder {
             throw new IllegalArgumentException("You can either ...");
         }
 
+        if (stderr != null && errorConsumer != null) {
+            throw new IllegalArgumentException("You can either ...");
+        }
+
         try {
             Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, errorConsumer != null ? errorConsumer : stderr);
 
