@@ -628,4 +628,97 @@ public class ProcBuilderTest {
                 .getProcString()
         );
     }
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void testMutualExclusivityOfStdOutConsumption1() {
+        try {
+            new ProcBuilder("echo")
+                .withArgs("Hello\n'World'!")
+                .withOutputStream(System.out)
+                .withOutputConsumer(new StreamConsumer() {
+                    @Override
+                    public void consume(InputStream stream) throws IOException {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                        String line;
+                        while ((line = reader.readLine()) != null) ;
+                    }
+                });
+            fail("`withOutputStream` and `withOutputConsumer` are mutually exclusive");
+        } catch (IllegalArgumentException iae) {
+            assertEquals("`withOutputStream(OutputStream)` and `withOutputConsumer(OutputConsumer)` are mutually exclusive.", iae.getMessage());
+        }
+    }
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void testMutualExclusivityOfStdOutConsumption2() {
+        try {
+            new ProcBuilder("echo")
+                .withArgs("Hello\n'World'!")
+                .withOutputConsumer(new StreamConsumer() {
+                    @Override
+                    public void consume(InputStream stream) throws IOException {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                        String line;
+                        while ((line = reader.readLine()) != null) ;
+                    }
+                })
+                .withOutputStream(System.out);
+            fail("`withOutputStream` and `withOutputConsumer` are mutually exclusive");
+        } catch (IllegalArgumentException iae) {
+            assertEquals("`withOutputStream(OutputStream)` and `withOutputConsumer(OutputConsumer)` are mutually exclusive.", iae.getMessage());
+        }
+    }
+
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void testMutualExclusivityOfStdErrConsumption1() {
+        try {
+            new ProcBuilder("echo")
+                .withArgs("Hello\n'World'!")
+                .withErrorStream(System.out)
+                .withErrorConsumer(new StreamConsumer() {
+                    @Override
+                    public void consume(InputStream stream) throws IOException {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                        String line;
+                        while ((line = reader.readLine()) != null) ;
+                    }
+                });
+            fail("`withErrorStream` and `withErrorConsumer` are mutually exclusive");
+        } catch (IllegalArgumentException iae) {
+            assertEquals("`withErrorStream(OutputStream)` and `withErrorConsumer(OutputConsumer)` are mutually exclusive.", iae.getMessage());
+        }
+    }
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void testMutualExclusivityOfStdErrConsumption2() {
+        try {
+            new ProcBuilder("echo")
+                .withArgs("Hello\n'World'!")
+                .withErrorConsumer(new StreamConsumer() {
+                    @Override
+                    public void consume(InputStream stream) throws IOException {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                        String line;
+                        while ((line = reader.readLine()) != null) ;
+                    }
+                })
+                .withErrorStream(System.out);
+            fail("`withErrorStream` and `withErrorConsumer` are mutually exclusive");
+        } catch (IllegalArgumentException iae) {
+            assertEquals("`withErrorStream(OutputStream)` and `withErrorConsumer(OutputConsumer)` are mutually exclusive.", iae.getMessage());
+        }
+    }
 }

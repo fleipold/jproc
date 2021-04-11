@@ -59,6 +59,11 @@ public class ProcBuilder {
      * @return this, for chaining
      * */
     public ProcBuilder withOutputStream(OutputStream stdout) {
+        if (outputConsumer != null) {
+            throw new IllegalArgumentException("`withOutputStream(OutputStream)` and `withOutputConsumer(OutputConsumer)` " +
+                "are mutually exclusive.");
+        }
+
         this.stdout = stdout;
         return this;
     }
@@ -70,6 +75,10 @@ public class ProcBuilder {
      * @return this, for chaining
      * */
     public ProcBuilder withErrorStream(OutputStream stderr) {
+        if (errorConsumer != null) {
+            throw new IllegalArgumentException("`withErrorStream(OutputStream)` and `withErrorConsumer(OutputConsumer)` " +
+                "are mutually exclusive.");
+        }
         this.stderr = stderr;
         return this;
     }
@@ -199,11 +208,13 @@ public class ProcBuilder {
     public ProcResult run() throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         if (stdout != defaultStdout && outputConsumer != null) {
-            throw new IllegalArgumentException("You can either ...");
+            throw new IllegalArgumentException("`withOutputStream(OutputStream)` and `withOutputConsumer(OutputConsumer)` " +
+                "are mutually exclusive.");
         }
 
         if (stderr != null && errorConsumer != null) {
-            throw new IllegalArgumentException("You can either ...");
+            throw new IllegalArgumentException("`withErrorStream(OutputStream)` and `withErrorConsumer(OutputConsumer)` " +
+                "are mutually exclusive.");
         }
 
         try {
@@ -271,6 +282,11 @@ public class ProcBuilder {
      * @return this, for chaining
      */
     public ProcBuilder withOutputConsumer(StreamConsumer outputConsumer) {
+        if (stdout != defaultStdout) {
+            throw new IllegalArgumentException("`withOutputStream(OutputStream)` and `withOutputConsumer(OutputConsumer)` " +
+                "are mutually exclusive.");
+        }
+
         this.outputConsumer = outputConsumer;
 
         return this;
@@ -282,6 +298,10 @@ public class ProcBuilder {
      * @return this, for chaining
      */
     public ProcBuilder withErrorConsumer(StreamConsumer errorConsumer) {
+        if (stderr != null) {
+            throw new IllegalArgumentException("`withErrorStream(OutputStream)` and `withErrorConsumer(OutputConsumer)` " +
+                "are mutually exclusive.");
+        }
         this.errorConsumer = errorConsumer;
         return this;
     }
