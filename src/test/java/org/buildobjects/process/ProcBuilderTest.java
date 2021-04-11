@@ -406,7 +406,7 @@ public class ProcBuilderTest {
     }
 
     /**
-     * Use consumer handling both stdout and stderr.
+     * Of course, you can consume stderr in the same way:
      */
     @Test
     public void testErrorConsumer() {

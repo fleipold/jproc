@@ -309,7 +309,7 @@ new ProcBuilder("echo")
     .run();
 ~~~
 
-Of course, you can consume stderr in the same way
+Of course, you can consume stderr in the same way:
 
 ~~~ .java
 new ProcBuilder("bash")
