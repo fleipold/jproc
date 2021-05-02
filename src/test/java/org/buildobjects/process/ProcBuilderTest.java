@@ -3,6 +3,7 @@ package org.buildobjects.process;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
@@ -740,7 +741,7 @@ public class ProcBuilderTest {
         thread.interrupt();
 
         Thread.sleep(1000); // Hoping to make build more stable.
-        
+
         // This test is a bit iffy as it relies on finding the process using ps.
         // If this test fails it will leave a dead process around for a couple of seconds.
         String[] processes = ProcBuilder.run("ps", "-ax").split("\n");
@@ -749,5 +750,40 @@ public class ProcBuilderTest {
                 fail("Process is still running after thread was interrupted:\n " + process);
             }
         }
+    }
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void feedInput() throws InterruptedException, IOException {
+
+        final PipedOutputStream outputForStdIn = new PipedOutputStream();
+        final PipedInputStream input = new PipedInputStream(outputForStdIn);
+        final ByteArrayOutputStream outputProper = new ByteArrayOutputStream();
+
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                new ProcBuilder("cat")
+                    .withInputStream(input)
+                    .withOutputStream(outputProper)
+                    .run();
+                System.out.println("DONE");
+            }
+        });
+
+        thread.start();
+
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputForStdIn, StandardCharsets.UTF_8));
+        writer.println("Hello");
+        writer.flush();
+
+        thread.sleep(100);
+        assertEquals("Hello\n", outputProper.toString("utf-8"));
+
+        writer.close();
+
+        thread.interrupt();
     }
 }

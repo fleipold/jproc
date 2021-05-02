@@ -30,6 +30,7 @@ class StreamCopyRunner implements Runnable {
 
             while (-1 != (n = in.read(buffer))) {
                 out.write(buffer, 0, n);
+                out.flush();
             }
             if (closeStreamAfterConsumingInput) {
                 out.close();
