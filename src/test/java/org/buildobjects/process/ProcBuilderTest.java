@@ -721,4 +721,31 @@ public class ProcBuilderTest {
             assertEquals("`withErrorStream(OutputStream)` and `withErrorConsumer(OutputConsumer)` are mutually exclusive.", iae.getMessage());
         }
     }
+
+    /**
+     * [NO-DOC]
+     * */
+    @Test
+    public void testProcessGetsKilledIfBlockedThreadIsInterrupted() {
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                new ProcBuilder("sleep")
+                    .withArgs("7")
+                    .run();
+            }
+        });
+
+        thread.start();
+        thread.interrupt();
+
+        // This test is a bit iffy as it relies on finding the process using ps.
+        // If this test fails it will leave a dead process around for a couple of seconds.
+        String[] processes = ProcBuilder.run("ps", "-ax").split("\n");
+        for (String process : processes) {
+            if (process.endsWith("sleep 7")) {
+                fail("Process is still running after thread was interrupted:\n " + process);
+            }
+        }
+    }
 }

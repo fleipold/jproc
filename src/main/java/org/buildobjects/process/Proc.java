@@ -111,7 +111,8 @@ class Proc implements EventSink {
 
 
         } catch (InterruptedException e) {
-            throw new RuntimeException("", e);
+            killProcessCleanup();
+            throw new RuntimeException("Control Thread was interrupted killed process.", e);
         }
     }
 
@@ -154,7 +155,6 @@ class Proc implements EventSink {
         ioHandler.cancelConsumption();
         throw new TimeoutException(toString(), timeout);
     }
-
 
     private void killProcessCleanup() {
         process.destroy();

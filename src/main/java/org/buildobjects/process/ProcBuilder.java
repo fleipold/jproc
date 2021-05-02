@@ -202,6 +202,7 @@ public class ProcBuilder {
     /** Spawn the actual execution.
      *  This will block until the process terminates.
      * @return the result of the successful execution
+     *
      * @throws StartupException if the process can't be started
      * @throws TimeoutException if the timeout kicked in
      * @throws ExternalProcessFailureException if the external process returned a non-null exit value*/
