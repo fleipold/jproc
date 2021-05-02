@@ -726,7 +726,7 @@ public class ProcBuilderTest {
      * [NO-DOC]
      * */
     @Test
-    public void testProcessGetsKilledIfBlockedThreadIsInterrupted() {
+    public void testProcessGetsKilledIfBlockedThreadIsInterrupted() throws InterruptedException {
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -739,6 +739,8 @@ public class ProcBuilderTest {
         thread.start();
         thread.interrupt();
 
+        Thread.sleep(1000); // Hoping to make build more stable.
+        
         // This test is a bit iffy as it relies on finding the process using ps.
         // If this test fails it will leave a dead process around for a couple of seconds.
         String[] processes = ProcBuilder.run("ps", "-ax").split("\n");
