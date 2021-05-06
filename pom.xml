@@ -9,8 +9,8 @@
     <url>https://github.com/fleipold/jproc</url>
     <licenses>
         <license>
-            <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <name>BSD-3-Clause</name>
+            <url>https://opensource.org/licenses/BSD-3-Clause</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
