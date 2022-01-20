@@ -3,6 +3,8 @@ package org.buildobjects.process;
 import org.junit.Test;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -145,8 +147,23 @@ public class ProcBuilderTest {
             .withVar("MYVAR", "my value").run();
 
         assertEquals("my value\n", result.getOutputString());
-        assertEquals("bash -c 'echo $MYVAR'", result.getProcString());
+        assertEquals("bash -c 'echo $MYVAR'", result.getCommandLine());
     }
+
+    @Test
+    public void testPassingInMultipleVariables() {
+        Map<String, String> envVariables = new HashMap<>();
+        envVariables.put("var1", "val 1");
+        envVariables.put("var2", "val 2");
+        ProcResult result = new ProcBuilder("bash")
+                .withArgs("-c", "env")
+                .withVars(envVariables).run();
+
+        assertTrue(result.getOutputString().contains("var1=val 1\n"));
+        assertTrue(result.getOutputString().contains("var2=val 2\n"));
+        assertEquals("bash -c env", result.getCommandLine());
+    }
+
 
     /**
      * By default the new program is spawned in the working directory of

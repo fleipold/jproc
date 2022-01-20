@@ -15,7 +15,7 @@ public class ProcBuilder {
 
     private String command;
     private List<String> args = new ArrayList<String>();
-    private Map<String, String> env = new HashMap<String, String>();
+    private Map<String, String> env = new HashMap<>();
 
     private OutputStream stdout = defaultStdout;
     private InputStream stdin;
@@ -267,12 +267,27 @@ public class ProcBuilder {
         return builder.run().getOutputString();
     }
 
-    /** Add a variable to the processes environment
+    /**
+     * Add a variable to the processes environment
+     *
      * @param var variable name
      * @param value the value to be passed in
-     * @return this, for chaining*/
+     * @return this, for chaining
+     * */
     public ProcBuilder withVar(String var, String value) {
         env.put(var, value);
+        return this;
+    }
+
+    /**
+     * Add multiple variables to the process's environment
+     *
+     * @param vars Map of variable and it's value
+     * @return this, for chaining
+     */
+
+    public ProcBuilder withVars(Map<String, String> vars){
+        env.putAll(vars);
         return this;
     }
 
