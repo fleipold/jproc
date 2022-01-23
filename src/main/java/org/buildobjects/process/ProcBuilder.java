@@ -268,7 +268,7 @@ public class ProcBuilder {
     }
 
     /**
-     * Add a variable to the processes environment
+     * Add a variable to the process's environment
      *
      * @param var variable name
      * @param value the value to be passed in
@@ -282,11 +282,10 @@ public class ProcBuilder {
     /**
      * Add multiple variables to the process's environment
      *
-     * @param vars Map of variable and it's value
+     * @param vars Map of variables to their respective values
      * @return this, for chaining
      */
-
-    public ProcBuilder withVars(Map<String, String> vars){
+    public ProcBuilder withVars(Map<String, String> vars) {
         env.putAll(vars);
         return this;
     }
