@@ -38,17 +38,6 @@ class Proc implements EventSink {
                 InputStream stdin,
                 Object stdout,
                 File directory,
-                Long timeout)
-            throws StartupException, TimeoutException, ExternalProcessFailureException {
-        this(command, args, env, stdin, stdout, directory, timeout, null);
-    }
-
-    public Proc(String command,
-                List<String> args,
-                Map<String, String> env,
-                InputStream stdin,
-                Object stdout,
-                File directory,
                 Long timeout,
                 Object stderr)
             throws StartupException, TimeoutException, ExternalProcessFailureException {
