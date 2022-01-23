@@ -114,7 +114,7 @@ assertEquals("my value\n", result.getOutputString());
 assertEquals("bash -c 'echo $MYVAR'", result.getCommandLine());
 ~~~
 
-If you want to set multiple environment variables, you can pass a Map.
+If you want to set multiple environment variables, you can pass a Map:
 
 ~~~ .java
 Map<String, String> envVariables = new HashMap<>();

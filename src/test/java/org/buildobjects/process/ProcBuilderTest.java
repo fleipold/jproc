@@ -150,6 +150,9 @@ public class ProcBuilderTest {
         assertEquals("bash -c 'echo $MYVAR'", result.getCommandLine());
     }
 
+    /**
+     * If you want to set multiple environment variables, you can pass a Map:
+     */
     @Test
     public void testPassingInMultipleVariables() {
         Map<String, String> envVariables = new HashMap<>();
