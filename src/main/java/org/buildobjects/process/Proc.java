@@ -35,6 +35,7 @@ class Proc implements EventSink {
     public Proc(String command,
                 List<String> args,
                 Map<String, String> env,
+                boolean clearEnvironment,
                 InputStream stdin,
                 Object stdout,
                 File directory,
@@ -53,6 +54,10 @@ class Proc implements EventSink {
         try {
             ProcessBuilder builder = new ProcessBuilder(cmdArray)
                     .directory(directory);
+
+            if (clearEnvironment) {
+                builder.environment().clear();
+            }
 
             builder.environment().putAll(env);
             process = builder.start();

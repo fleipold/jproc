@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * <dependency>
  *     <groupId>org.buildobjects</groupId>
  *     <artifactId>jproc</artifactId>
- *     <version>2.2.0</version>
+ *     <version>2.7.0</version>
  * </dependency>
  * ~~~
  */
@@ -164,6 +164,28 @@ public class ProcBuilderTest {
 
         assertTrue(result.getOutputString().contains("var1=val 1\n"));
         assertTrue(result.getOutputString().contains("var2=val 2\n"));
+        assertEquals("bash -c env", result.getCommandLine());
+    }
+
+    /**
+     * The environment can be cleared of values inherited from the parent process:
+     */
+    @Test
+    public void testClearEnvironment() {
+        Map<String, String> envVariables = new HashMap<>();
+        envVariables.put("var1", "val 1");
+        envVariables.put("var2", "val 2");
+        ProcResult result = new ProcBuilder("bash")
+                .withArgs("-c", "env")
+                .clearEnvironment()
+                .withVars(envVariables).run();
+
+        String[] outputLines = result.getOutputString().split("\n");
+        assertEquals("var1=val 1", outputLines[0]);
+        assertEquals("var2=val 2", outputLines[1]);
+        // Note: environment is not going to be completely empty, as there are some variables that every process needs
+        //       thus we only assert on the first two lines.
+
         assertEquals("bash -c env", result.getCommandLine());
     }
 

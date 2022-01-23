@@ -29,6 +29,7 @@ public class ProcBuilder {
 
     private StreamConsumer outputConsumer;
     private StreamConsumer errorConsumer;
+    private boolean clearEnvironment;
 
 
     /** Creates a new ProcBuilder
@@ -219,7 +220,7 @@ public class ProcBuilder {
         }
 
         try {
-            Proc proc = new Proc(command, args, env, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, errorConsumer != null ? errorConsumer : stderr);
+            Proc proc = new Proc(command, args, env, clearEnvironment, stdin, outputConsumer != null ? outputConsumer : stdout , directory, timoutMillis, errorConsumer != null ? errorConsumer : stderr);
 
             final ByteArrayOutputStream output = defaultStdout == stdout && outputConsumer == null ? defaultStdout : null;
 
@@ -265,6 +266,12 @@ public class ProcBuilder {
 
 
         return builder.run().getOutputString();
+    }
+
+    /** Clears the environment before setting new variables. */
+     public ProcBuilder clearEnvironment() {
+        this.clearEnvironment = true;
+        return this;
     }
 
     /**
@@ -353,4 +360,5 @@ public class ProcBuilder {
     public String getCommandLine() {
         return Proc.formatCommandLine(command, args);
     }
+
 }
