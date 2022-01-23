@@ -51,23 +51,26 @@ class Proc implements EventSink {
                 File directory,
                 Long timeout,
                 Object stderr)
-        throws StartupException, TimeoutException, ExternalProcessFailureException {
+            throws StartupException, TimeoutException, ExternalProcessFailureException {
 
         this.command = command;
         this.args = args;
         this.timeout = timeout;
-        String[] envArray = getEnv(env);
         String[] cmdArray = concatenateCmdArgs();
         long t1 = System.currentTimeMillis();
 
         OutputConsumptionThread stdoutConsumer;
 
         try {
-            process = Runtime.getRuntime().exec(cmdArray, envArray, directory);
+            ProcessBuilder builder = new ProcessBuilder(cmdArray)
+                    .directory(directory);
+
+            builder.environment().putAll(env);
+            process = builder.start();
 
             stdoutConsumer = createStreamConsumer(stdout);
 
-            if(stderr == null) {
+            if (stderr == null) {
                 err = new ByteArrayConsumptionThread(this);
             } else {
                 err = createStreamConsumer(stderr);
@@ -117,16 +120,18 @@ class Proc implements EventSink {
     }
 
     private OutputConsumptionThread createStreamConsumer(Object stream) {
-            if (stream instanceof OutputStream) {
-                return new StreamCopyConsumptionThread((OutputStream)stream, this);
-            }  else if (stream instanceof StreamConsumer) {
-                return new StreamConsumerConsumptionThread(Proc.this, (StreamConsumer)stream);
-            } else {throw new RuntimeException("Badness, badness");}
+        if (stream instanceof OutputStream) {
+            return new StreamCopyConsumptionThread((OutputStream) stream, this);
+        } else if (stream instanceof StreamConsumer) {
+            return new StreamConsumerConsumptionThread(Proc.this, (StreamConsumer) stream);
+        } else {
+            throw new RuntimeException("Badness, badness");
+        }
     }
 
     byte[] getErrorBytes() {
-        if(err instanceof ByteArrayConsumptionThread) {
-            return ((ByteArrayConsumptionThread)err).getBytes();
+        if (err instanceof ByteArrayConsumptionThread) {
+            return ((ByteArrayConsumptionThread) err).getBytes();
         }
         // Output stream/stream consumer was provided by user, we don't own it.
         return null;
@@ -161,26 +166,12 @@ class Proc implements EventSink {
         ioHandler.cancelConsumption();
     }
 
-    public void dispatch(ExecutionEvent event)  {
+    public void dispatch(ExecutionEvent event) {
         try {
             eventQueue.put(event);
         } catch (InterruptedException e) {
             throw new RuntimeException("${END}", e);
         }
-    }
-
-    private String[] getEnv(Map<String, String> env) {
-        if (env == null || env.isEmpty()) {
-            return null;
-        }
-        String[] retValue = new String[env.size()];
-        int i = 0;
-        for (Map.Entry<String, String> entry : env.entrySet()) {
-            retValue[i++] = entry.getKey() + "=" + entry.getValue();
-
-        }
-        return retValue;
-
     }
 
     private String[] concatenateCmdArgs() {
@@ -197,12 +188,12 @@ class Proc implements EventSink {
     }
 
     static String formatCommandLine(String command, List<String> args) {
-      return command + " " + argsString(args);
+        return command + " " + argsString(args);
     }
 
     private static String argsString(List<String> args) {
         StringBuffer temp = new StringBuffer();
-        for (Iterator<String> stringIterator = args.iterator(); stringIterator.hasNext();) {
+        for (Iterator<String> stringIterator = args.iterator(); stringIterator.hasNext(); ) {
             String arg = stringIterator.next();
             String escapedArg = naiveShellEscape(arg);
             temp.append(escapedArg);
@@ -218,7 +209,7 @@ class Proc implements EventSink {
         Matcher m = p.matcher(arg);
         String escapedArg;
         if (m.find()) {
-            escapedArg = "'" + arg.replaceAll("'","'\"'\"'") + "'";
+            escapedArg = "'" + arg.replaceAll("'", "'\"'\"'") + "'";
         } else {
             escapedArg = arg;
         }
