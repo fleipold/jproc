@@ -60,6 +60,7 @@ vim /tmp/release-notes-candidate.txt
 release_notes=$(cat /tmp/release-notes-candidate.txt)
 
 sed -i "" -E "s%(.*)<version>[^<]*</version>%\1<version>${version}</version>%g" README.md
+sed -i "" -E "s%(.*)<version>[^<]*</version>%\1<version>2.9.2</version>%g" src/test/java/org/buildobjects/process/ProcBuilderTest.java
 
 git branch --force "release-${tag}"
 git checkout "release-${tag}"
