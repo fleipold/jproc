@@ -13,9 +13,9 @@ public class ProcBuilder {
 
     private ByteArrayOutputStream defaultStdout = new ByteArrayOutputStream();
 
-    private String command;
-    private List<String> args = new ArrayList<String>();
-    private Map<String, String> env = new HashMap<>();
+    private final String command;
+    private final List<String> args = new ArrayList<String>();
+    private final Map<String, String> env = new HashMap<>();
 
     private OutputStream stdout = defaultStdout;
     private InputStream stdin;
