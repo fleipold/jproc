@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 /**
  * [DOC file=README.md]
  *
- * [![Build Status](https://travis-ci.org/fleipold/jproc.svg?branch=master)](https://travis-ci.org/fleipold/jproc)
+ * [![Build Status](https://app.travis-ci.com/fleipold/jproc.svg?branch=master)](https://app.travis-ci.com/fleipold/jproc)
  * [![Maven Central](https://img.shields.io/maven-central/v/org.buildobjects/jproc.svg?maxAge=600)](https://mvnrepository.com/artifact/org.buildobjects/jproc)
  *
  * Intro
@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * <dependency>
  *     <groupId>org.buildobjects</groupId>
  *     <artifactId>jproc</artifactId>
- *     <version>2.7.0</version>
+ *     <version>2.8.0</version>
  * </dependency>
  * ~~~
  */
