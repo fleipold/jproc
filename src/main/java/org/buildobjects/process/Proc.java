@@ -150,14 +150,31 @@ class Proc implements EventSink {
     }
 
     private void killCleanUpAndThrowTimeoutException() {
-        process.destroy();
-        ioHandler.cancelConsumption();
+        killProcessCleanup();
         throw new TimeoutException(toString(), timeout);
     }
 
     private void killProcessCleanup() {
-        process.destroy();
+        List<Throwable> throwables = new ArrayList<>();
+
+        // destroy this process and all sub processes
+        ProcessHandle.of(process.pid())
+            .ifPresentOrElse(rootHandle -> {
+                rootHandle.descendants()
+                    .forEach(subHandle -> {
+                        try {
+                            subHandle.destroy();
+                        }
+                        catch (Throwable t) {
+                            throwables.add(new IllegalStateException("Could not destroy process " + subHandle.pid(), t));
+                        }
+                    });
+                rootHandle.destroy();
+            }, process::destroy);
         ioHandler.cancelConsumption();
+
+        if(!throwables.isEmpty())
+            throw new RuntimeException(throwables.get(0));
     }
 
     public void dispatch(ExecutionEvent event) {
