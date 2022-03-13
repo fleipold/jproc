@@ -5,6 +5,9 @@ import org.junit.Test;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
 
@@ -263,6 +266,41 @@ public class ProcBuilderTest {
     }
 
     /**
+     * Tests if the process stops the execution when the thread is interrupted
+     */
+    @Test
+    public void testInterruptingProcess() throws InterruptedException {
+        AtomicBoolean finished = new AtomicBoolean(false);
+        AtomicReference<ProcResult> resultRef = new AtomicReference<>(null);
+
+        Thread executorThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                resultRef.set(new ProcBuilder("sleep")
+                        .withArg("10")
+                        .ignoreExitStatus()
+                        .withNoTimeout()
+                        .run());
+                finished.set(true);
+            }
+        });
+        executorThread.start();
+
+        // wait some time
+        Thread.sleep(2000);
+
+        // stop the thread
+        executorThread.interrupt();
+
+        // wait shortly
+        Thread.sleep(500);
+
+        assertTrue(finished.get());
+        assertNotNull(resultRef.get());
+        assertEquals(2000, resultRef.get().getExecutionTime(), 300);
+    }
+
+    /**
      * Exit Status
      * -----------
      *
@@ -382,6 +420,37 @@ public class ProcBuilderTest {
         } catch (ExternalProcessFailureException ex) {
             assertEquals(99, ex.getExitValue());
         }
+    }
+
+    /**
+     * If the process is interrupted, the exit code should be 1
+     */
+    @Test
+    public void testExitStatusWhenProcessIsInterrupted() throws InterruptedException {
+        AtomicReference<ProcResult> resultRef = new AtomicReference<>(null);
+        Thread executorThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                resultRef.set(new ProcBuilder("sleep")
+                                .withArg("10")
+                                .withExpectedExitStatuses(1)
+                                .withNoTimeout()
+                                .run());
+            }
+        });
+        executorThread.start();
+
+        // wait some time
+        Thread.sleep(2000);
+
+        // stop the thread
+        executorThread.interrupt();
+
+        // wait shortly
+        Thread.sleep(500);
+
+        assertNotNull(resultRef.get());
+        assertEquals(1, resultRef.get().getExitValue());
     }
 
     /**
