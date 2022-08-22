@@ -28,8 +28,10 @@ class StreamConsumerConsumptionThread implements OutputConsumptionThread {
                     stdout.consume(inputStream);
 
                 } catch (Throwable t) {
-                    StreamConsumerConsumptionThread.this.throwable = t;
-                    eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
+                    if (!thread.isInterrupted()) {
+                        StreamConsumerConsumptionThread.this.throwable = t;
+                        eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
+                    }
                 }
             }
         });
