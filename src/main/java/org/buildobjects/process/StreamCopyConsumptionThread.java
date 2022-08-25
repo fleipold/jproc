@@ -25,11 +25,14 @@ class StreamCopyConsumptionThread implements OutputConsumptionThread {
             public void run() {
                 try {
                     new StreamCopyRunner(inputStream, stdout, false).run();
-            } catch (Throwable t) {
-                StreamCopyConsumptionThread.this.throwable = t;
-                eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
+                } catch (Throwable t) {
+                    if (!thread.isInterrupted()) {
+                        StreamCopyConsumptionThread.this.throwable = t;
+                        eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
+                    }
+                }
             }
-        }});
+        });
         this.thread.start();
     }
 

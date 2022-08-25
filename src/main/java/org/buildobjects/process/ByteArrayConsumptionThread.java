@@ -32,8 +32,10 @@ class ByteArrayConsumptionThread implements OutputConsumptionThread {
                 try {
                     bytes = toByteArray(inputStream);
                 } catch (Throwable t) {
-                    ByteArrayConsumptionThread.this.throwable = t;
-                    eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
+                    if (!thread.isInterrupted()) {
+                        ByteArrayConsumptionThread.this.throwable = t;
+                        eventSink.dispatch(EXCEPTION_IN_STREAM_HANDLING);
+                    }
                 }
             }
         });
