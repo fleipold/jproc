@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * <dependency>
  *     <groupId>org.buildobjects</groupId>
  *     <artifactId>jproc</artifactId>
- *     <version>2.8.0</version>
+ *     <version>2.8.1</version>
  * </dependency>
  * ~~~
  */
