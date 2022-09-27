@@ -77,28 +77,35 @@ class Proc implements EventSink {
             throw new StartupException("Could not startup process '" + toString() + "'.", e);
         }
 
-        try {
             startControlThread();
 
             do {
-                ExecutionEvent nextEvent = timeout == null ? eventQueue.poll(MAX_VALUE, HOURS) : eventQueue.poll(timeout, MILLISECONDS);
+                try {
+                    ExecutionEvent nextEvent = timeout == null ? eventQueue.poll(MAX_VALUE, HOURS) : eventQueue.poll(timeout, MILLISECONDS);
 
-                if (nextEvent == null) {
-                    killCleanUpAndThrowTimeoutException();
-                }
+                    if (nextEvent == null) {
+                        killCleanUpAndThrowTimeoutException();
+                    }
 
-                if (nextEvent == PROCESS_EXITED) {
-                    break;
-                }
+                    if (nextEvent == PROCESS_EXITED) {
+                        break;
+                    }
 
-                if (nextEvent == EXCEPTION_IN_STREAM_HANDLING) {
+                    if (nextEvent == EXCEPTION_IN_STREAM_HANDLING) {
+                        killProcessCleanup();
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    // if this thread is interrupted, the process is destroyed
+                    // the process gets an exit code, so the next event is PROCESS_EXITED
                     killProcessCleanup();
-                    break;
+                    continue;
                 }
 
                 throw new RuntimeException("Felix reckons we should never reach this point");
             } while (true);
 
+        try {
             List<Throwable> exceptions = ioHandler.joinConsumption();
             if (!exceptions.isEmpty()) {
                 throw new IllegalStateException("Exception in stream consumption", exceptions.get(0));
@@ -150,14 +157,31 @@ class Proc implements EventSink {
     }
 
     private void killCleanUpAndThrowTimeoutException() {
-        process.destroy();
-        ioHandler.cancelConsumption();
+        killProcessCleanup();
         throw new TimeoutException(toString(), timeout);
     }
 
     private void killProcessCleanup() {
-        process.destroy();
+        List<Throwable> throwables = new ArrayList<>();
+
+        // destroy this process and all sub processes
+        ProcessHandle.of(process.pid())
+            .ifPresentOrElse(rootHandle -> {
+                rootHandle.descendants()
+                    .forEach(subHandle -> {
+                        try {
+                            subHandle.destroy();
+                        }
+                        catch (Throwable t) {
+                            throwables.add(new IllegalStateException("Could not destroy process " + subHandle.pid(), t));
+                        }
+                    });
+                rootHandle.destroy();
+            }, process::destroy);
         ioHandler.cancelConsumption();
+
+        if(!throwables.isEmpty())
+            throw new RuntimeException(throwables.get(0));
     }
 
     public void dispatch(ExecutionEvent event) {
