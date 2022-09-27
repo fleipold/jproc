@@ -20,7 +20,7 @@ if you are using maven add this snippet to your pom:
 <dependency>
     <groupId>org.buildobjects</groupId>
     <artifactId>jproc</artifactId>
-    <version>2.8.1</version>
+    <version>2.8.2</version>
 </dependency>
 ~~~
 
